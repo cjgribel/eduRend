@@ -1,2 +1,2 @@
 # eduRend
-Rendering framework for graphics assignments on Malmö University DA307A
+DirectX rendering framework for graphics assignments in DA307A, on Malmö University.
