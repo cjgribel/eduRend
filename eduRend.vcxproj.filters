@@ -30,7 +30,7 @@
     <ClInclude Include="src\Keycodes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\OBJMesh.h">
+    <ClInclude Include="src\OBJLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\parseutil.h">
@@ -74,7 +74,7 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\OBJMesh.cpp">
+    <ClCompile Include="src\OBJLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene.cpp">

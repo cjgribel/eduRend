@@ -10,7 +10,7 @@ HRESULT CreateShadersAndInputLayout(
 
 	printf("\nCompiling vertex shader...\n");
 	ID3DBlob* pVertexShader = nullptr;
-	if (SUCCEEDED(hr = CompileShader("shaders/DrawTri.vs", "VS_main", "vs_5_0", nullptr, &pVertexShader)))
+	if (SUCCEEDED(hr = CompileShader("shaders/default_shader.vs", "VS_main", "vs_5_0", nullptr, &pVertexShader)))
 	{
 		if (SUCCEEDED(hr = device->CreateVertexShader(
 			pVertexShader->GetBufferPointer(),
@@ -43,7 +43,7 @@ HRESULT CreateShadersAndInputLayout(
 
 	printf("\nCompiling pixel shader...\n\n");
 	ID3DBlob* pPixelShader = nullptr;
-	if (SUCCEEDED(hr = CompileShader("shaders/DrawTri.ps", "PS_main", "ps_5_0", nullptr, &pPixelShader)))
+	if (SUCCEEDED(hr = CompileShader("shaders/default_shader.ps", "PS_main", "ps_5_0", nullptr, &pPixelShader)))
 	{
 		hr = device->CreatePixelShader(
 			pPixelShader->GetBufferPointer(),

@@ -15,11 +15,11 @@
 #include "vec\mat.h"
 #include "ShaderBuffers.h"
 #include "Drawcall.h"
-#include "OBJMesh.h"
+#include "OBJLoader.h"
 
 using namespace linalg;
 
-class Geometry_t
+class Model
 {
 protected:
 	// Pointers to the current device and device context
@@ -32,7 +32,7 @@ protected:
 
 public:
 
-	Geometry_t(
+	Model(
 		ID3D11Device* dxdevice, 
 		ID3D11DeviceContext* dxdevice_context) 
 		:	dxdevice(dxdevice),
@@ -51,34 +51,34 @@ public:
 	//
 	// Abstract render method: must be implemented by derived classes
 	//
-	virtual void render() const = 0;
+	virtual void Render() const = 0;
 
 	//
 	// Destructor
 	//
-	virtual ~Geometry_t()
+	virtual ~Model()
 	{ 
 		SAFE_RELEASE(vertex_buffer);
 		SAFE_RELEASE(index_buffer);
 	}
 };
 
-class Quad_t : public Geometry_t
+class QuadModel : public Model
 {
 	unsigned nbr_indices = 0;
 
 public:
 
-	Quad_t(
+	QuadModel(
 		ID3D11Device* dx3ddevice,
 		ID3D11DeviceContext* dx3ddevice_context);
 
-	virtual void render() const;
+	virtual void Render() const;
 
-	~Quad_t() { }
+	~QuadModel() { }
 };
 
-class OBJModel_t : public Geometry_t
+class OBJModel : public Model
 {
 	// index ranges, representing drawcalls, within an index array
 	struct index_range_t
@@ -90,23 +90,23 @@ class OBJModel_t : public Geometry_t
 	};
 
 	std::vector<index_range_t> index_ranges;
-	std::vector<material_t> materials;
+	std::vector<Material> materials;
 
-	void append_materials(const std::vector<material_t>& mtl_vec)
+	void append_materials(const std::vector<Material>& mtl_vec)
 	{
 		materials.insert(materials.end(), mtl_vec.begin(), mtl_vec.end());
 	}
 
 public:
 
-	OBJModel_t(
+	OBJModel(
 		const std::string& objfile,
 		ID3D11Device* dxdevice,
 		ID3D11DeviceContext* dxdevice_context);
 
-	virtual void render() const;
+	virtual void Render() const;
 
-	~OBJModel_t() { }
+	~OBJModel() { }
 };
 
 #endif

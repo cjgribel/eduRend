@@ -5,15 +5,77 @@
 //  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
 //
 
+#include <fstream>
 #include <algorithm>
-#include "OBJMesh.h"
+#include "OBJLoader.h"
+#include "vec/vec.h"
+#include "parseutil.h"
 
-using linalg::int3;
+using namespace linalg;
 
-void objmesh_t::load_mtl(
+//
+// Auxiliary structs for raw file data
+//
+struct unwelded_triangle_t { int vi[9]; };
+struct unwelded_quad_t { int vi[12]; };
+struct unwelded_drawcall_t
+{
+	std::string mtl_name;
+	std::string group_name;
+	std::vector<unwelded_triangle_t> tris;
+	std::vector<unwelded_quad_t> quads;
+	int v_ofs = 0;
+};
+
+//
+// Creates normals to a set of vertices by averaging the 
+// geometric normals of the faces they belong to
+//
+// If a model lacks normals, this function can be used 
+// to create them. Works best for relatively smooth models.
+//
+void GenerateNormals(
+	const std::vector<vec3f>& v, 
+	std::vector<vec3f>& vn, 
+	std::vector<unwelded_drawcall_t>& drawcalls)
+{
+	std::vector<vec3f>* v_bin = new std::vector<vec3f>[v.size()];
+
+	// bin normals from all faces to vertex bins
+	for (unwelded_drawcall_t& dc : drawcalls)
+		for (unwelded_triangle_t& tri : dc.tris)
+		{
+			int a = tri.vi[0], b = tri.vi[1], c = tri.vi[2];
+			vec3f v0 = v[a], v1 = v[b], v2 = v[c];
+			vec3f n = linalg::normalize((v1 - v0) % (v2 - v0));
+
+			v_bin[a].push_back(n);
+			v_bin[b].push_back(n);
+			v_bin[c].push_back(n);
+
+			memcpy(tri.vi + 3, tri.vi, 3 * sizeof(int));
+		}
+
+	// average binned normals and add to array
+	for (size_t i = 0; i < v.size(); i++)
+	{
+		vec3f n = vec3f_zero;
+		for (size_t j = 0; j < v_bin[i].size(); j++)
+		{
+			n += v_bin[i][j];
+		}
+		n = linalg::normalize(n);
+
+		vn.push_back(n);
+	}
+
+	delete[] v_bin;
+}
+
+void OBJLoader::LoadMaterials(
 	std::string path, 
 	std::string filename, 
-	mtl_hash_t &mtl_hash)
+	MaterialHash &mtl_hash)
 {
     std::string fullpath = path+filename;
     
@@ -23,7 +85,7 @@ void objmesh_t::load_mtl(
     std::cout << "Opened " << fullpath << "\n";
     
     std::string line;
-    material_t *current_mtl = NULL;
+    Material *current_mtl = NULL;
     
     while (getline(in, line, '\n'))
     {
@@ -37,7 +99,7 @@ void objmesh_t::load_mtl(
             // check for duplicate
             if (mtl_hash.find(str0) != mtl_hash.end() ) printf("Warning: duplicate material '%s'\n", str0);
             
-            mtl_hash[str0] = material_t();
+            mtl_hash[str0] = Material();
             current_mtl = &mtl_hash[str0];
             current_mtl->name = str0;
         }
@@ -89,7 +151,7 @@ void objmesh_t::load_mtl(
     in.close();
 }
 
-void objmesh_t::load_obj(
+void OBJLoader::Load(
 	const std::string& filename,
 	bool auto_generate_normals,
 	bool triangulate)
@@ -104,7 +166,7 @@ void objmesh_t::load_obj(
 	std::vector<vec3f> file_vertices, file_normals;
 	std::vector<vec2f> file_texcoords;
 	std::vector<unwelded_drawcall_t> file_drawcalls;
-	mtl_hash_t file_materials;
+	MaterialHash file_materials;
 
 	std::string current_group_name;
 	unwelded_drawcall_t default_drawcall;
@@ -123,7 +185,7 @@ void objmesh_t::load_obj(
 		//
 		if (sscanf_s(line.c_str(), "mtllib %s", str, MaxChars) == 1)
 		{
-			load_mtl(parentdir, str, file_materials);
+			LoadMaterials(parentdir, str, file_materials);
 		}
 		// active material
 		//
@@ -267,7 +329,7 @@ void objmesh_t::load_obj(
 	// auto-generate normals
 	if (!has_normals && auto_generate_normals)
 	{
-		compute_normals(file_vertices, file_normals, file_drawcalls);
+		GenerateNormals(file_vertices, file_normals, file_drawcalls);
 		has_normals = true;
 		printf("Auto-generated %d normals\n", (int)file_normals.size());
 	}
@@ -287,7 +349,7 @@ void objmesh_t::load_obj(
 
 	for (auto &dc : file_drawcalls)
 	{
-		drawcall_t wdc;
+		Drawcall wdc;
 		wdc.group_name = dc.group_name;
 
 		std::unordered_map<int3, unsigned, int3_hashfunction> index3_to_index_hash;
@@ -322,7 +384,7 @@ void objmesh_t::load_obj(
 		//
 		for (auto &tri : dc.tris)
 		{
-			triangle_t wtri;
+			triangle wtri;
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -332,7 +394,7 @@ void objmesh_t::load_obj(
 				if (s == index3_to_index_hash.end())
 				{
 					// index-combo does not exist, create it
-					vertex_t v;
+					Vertex v;
 					v.Pos = file_vertices[i3.x];
 					if (i3.y > -1) v.Normal = file_normals[i3.y];
 					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];
@@ -366,7 +428,7 @@ void objmesh_t::load_obj(
 				if (s == index3_to_index_hash.end())
 				{
 					// index-combo does not exist, create it
-					vertex_t v;
+					Vertex v;
 					v.Pos = file_vertices[i3.x];
 					if (i3.y > -1) v.Normal = file_normals[i3.y];
 					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];

@@ -8,7 +8,7 @@
 #include "Geometry.h"
 
 
-void Geometry_t::MapMatrixBuffers(
+void Model::MapMatrixBuffers(
 	ID3D11Buffer* matrix_buffer,
 	mat4f ModelToWorldMatrix,
 	mat4f WorldToViewMatrix,
@@ -25,18 +25,18 @@ void Geometry_t::MapMatrixBuffers(
 }
 
 
-Quad_t::Quad_t(
+QuadModel::QuadModel(
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
-	: Geometry_t(dxdevice, dxdevice_context)
+	: Model(dxdevice, dxdevice_context)
 {
 	// Vertex and index arrays
 	// Once their data is loaded to GPU buffers, they are not needed anymore
-	std::vector<vertex_t> vertices;
+	std::vector<Vertex> vertices;
 	std::vector<unsigned> indices;
 
 	// Populate the vertex array with 4 vertices
-	vertex_t v0, v1, v2, v3;
+	Vertex v0, v1, v2, v3;
 	v0.Pos = { -0.5, -0.5f, 0.0f };
 	v0.Normal = { 0, 0, 1 };
 	v0.TexCoord = { 0, 0 };
@@ -70,7 +70,7 @@ Quad_t::Quad_t(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = vertices.size()*sizeof(vertex_t);
+	vbufferDesc.ByteWidth = vertices.size()*sizeof(Vertex);
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
@@ -94,13 +94,13 @@ Quad_t::Quad_t(
 }
 
 
-void Quad_t::render() const
+void QuadModel::Render() const
 {
 	// Set topology (IA = Input Assembler stage)
 	dxdevice_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Bind our vertex buffer
-	const UINT32 stride = sizeof(vertex_t); //  sizeof(float) * 8;
+	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
 
@@ -112,15 +112,15 @@ void Quad_t::render() const
 }
 
 
-OBJModel_t::OBJModel_t(
+OBJModel::OBJModel(
 	const std::string& objfile,
 	ID3D11Device* dxdevice,
 	ID3D11DeviceContext* dxdevice_context)
-	: Geometry_t(dxdevice, dxdevice_context)
+	: Model(dxdevice, dxdevice_context)
 {
 	// Load the OBJ
-	objmesh_t* mesh = new objmesh_t();
-	mesh->load_obj(objfile);
+	OBJLoader* mesh = new OBJLoader();
+	mesh->Load(objfile);
 
 	// Load and organize indices in ranges per drawcall (material)
 
@@ -147,7 +147,7 @@ OBJModel_t::OBJModel_t(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = mesh->vertices.size()*sizeof(vertex_t);
+	vbufferDesc.ByteWidth = mesh->vertices.size()*sizeof(Vertex);
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &(mesh->vertices)[0];
@@ -197,13 +197,13 @@ OBJModel_t::OBJModel_t(
 }
 
 
-void OBJModel_t::render() const
+void OBJModel::Render() const
 {
 	// Set topology
 	dxdevice_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// Bind vertex buffer
-	const UINT32 stride = sizeof(vertex_t);
+	const UINT32 stride = sizeof(Vertex);
 	const UINT32 offset = 0;
 	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
 
@@ -214,7 +214,7 @@ void OBJModel_t::render() const
 	for (auto& irange : index_ranges)
 	{
 		// Fetch material
-		const material_t& mtl = materials[irange.mtl_index];
+		const Material& mtl = materials[irange.mtl_index];
 
 		// Bind textures
 		dxdevice_context->PSSetShaderResources(0, 1, &mtl.map_Kd_TexSRV);

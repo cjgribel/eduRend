@@ -1,6 +1,37 @@
 
 #include "Scene.h"
 
+Scene::Scene(
+	ID3D11Device* dxdevice,
+	ID3D11DeviceContext* dxdevice_context,
+	int window_width,
+	int window_height) :
+	dxdevice(dxdevice),
+	dxdevice_context(dxdevice_context),
+	window_width(window_width),
+	window_height(window_height)
+{ }
+
+void Scene::Init()
+{
+}
+
+void Scene::Update(
+	float dt,
+	InputHandler* input_handler)
+{}
+
+void Scene::Render()
+{}
+
+void Scene::Release()
+{}
+
+void Scene::WindowResize(
+	int window_width,
+	int window_height)
+{}
+
 //
 // Declarations
 //
@@ -8,8 +39,8 @@
 // Objects
 camera_t* camera;
 
-Quad_t* quad;
-OBJModel_t* sponza;
+QuadModel* quad;
+OBJModel* sponza;
 
 // Object model-to-world transformation matrices and stuff related to them
 mat4f Msponza;
@@ -46,8 +77,8 @@ void initObjects(
 	camera->moveTo({ 0, 0, 5 });
 
 	// Create objects
-	quad = new Quad_t(dxdevice, dxdevice_context);
-	sponza = new OBJModel_t("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
+	quad = new QuadModel(dxdevice, dxdevice_context);
+	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 }
 
 //
@@ -108,11 +139,11 @@ void renderObjects(ID3D11Buffer* matrix_buffer)
 
 	// Load matrices + the Quad's transformation to the device and render it
 	quad->MapMatrixBuffers(matrix_buffer, Mquad, Mview, Mproj);
-	quad->render();
+	quad->Render();
 
 	// Load matrices + Sponza's transformation to the device and render it
 	sponza->MapMatrixBuffers(matrix_buffer, Msponza, Mview, Mproj);
-	sponza->render();
+	sponza->Render();
 }
 
 //

@@ -17,7 +17,7 @@
 
 using namespace linalg;
 
-struct vertex_t
+struct Vertex
 {
 	vec3f Pos;
 	vec3f Normal, Tangent, Binormal;
@@ -27,7 +27,7 @@ struct vertex_t
 //
 // Phong-esque material
 //
-struct material_t
+struct Material
 {
 	//  Phong color components: ambient, diffuse & specular
     vec3f Ka = {0,0.5,0}, Kd = {0,0.5,0}, Ks = {1,1,1};
@@ -42,11 +42,11 @@ struct material_t
 	// other map types here ...
 };
 
-static material_t default_mtl = material_t();
+static Material DefaultMaterial = Material();
 
-typedef std::unordered_map<std::string, material_t> mtl_hash_t;
+typedef std::unordered_map<std::string, Material> MaterialHash;
 
-struct triangle_t 
+struct triangle 
 { 
 	unsigned vi[3]; 
 };
@@ -56,15 +56,15 @@ struct quad_t_
 	unsigned vi[4];
 };
 
-struct drawcall_t
+struct Drawcall
 {
     std::string group_name;
     int mtl_index = -1;
-    std::vector<triangle_t> tris;
+    std::vector<triangle> tris;
     std::vector<quad_t_> quads;
     
 	// make sortable w.r.t. material
-    bool operator < (const drawcall_t& dc) const
+    bool operator < (const Drawcall& dc) const
     {
         return mtl_index < dc.mtl_index;
     }

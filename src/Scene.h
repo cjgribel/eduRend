@@ -8,6 +8,46 @@
 #include "Camera.h"
 #include "Geometry.h"
 
+// New files
+// Material
+// Texture
+
+class Scene
+{
+private:
+	ID3D11Device*			dxdevice;
+	ID3D11DeviceContext*	dxdevice_context;
+	int						window_width;
+	int						window_height;
+
+public:
+
+	Scene(
+		ID3D11Device* dxdevice,
+		ID3D11DeviceContext* dxdevice_context,
+		int window_width,
+		int window_height);
+
+	void Init();
+
+	void Update(
+		float dt,
+		InputHandler* input_handler);
+	
+	void Render();
+	
+	void Release();
+	
+	void WindowResize(
+		int window_width,
+		int window_height);
+};
+
+
+
+
+
+
 //
 // Called at initialization
 //

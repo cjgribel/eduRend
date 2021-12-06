@@ -145,7 +145,7 @@
     <ClInclude Include="src\Geometry.h" />
     <ClInclude Include="src\InputHandler.h" />
     <ClInclude Include="src\Keycodes.h" />
-    <ClInclude Include="src\OBJMesh.h" />
+    <ClInclude Include="src\OBJLoader.h" />
     <ClInclude Include="src\parseutil.h" />
     <ClInclude Include="src\Scene.h" />
     <ClInclude Include="src\Shader.h" />
@@ -160,7 +160,7 @@
     <ClCompile Include="src\Geometry.cpp" />
     <ClCompile Include="src\InputHandler.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\OBJMesh.cpp" />
+    <ClCompile Include="src\OBJLoader.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\vec\mat.cpp" />
