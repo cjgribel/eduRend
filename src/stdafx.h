@@ -18,6 +18,12 @@
 
 #define ASSERT(x) if(FAILED(x)) { throw std::runtime_error("ASSERT failed\n"); }
 
+#ifdef _DEBUG
+#define SETNAME(object, name) object->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(name) - 1, name)
+#else
+#define SETNAME(object, name) (void)0
+#endif
+
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dinput8.lib")

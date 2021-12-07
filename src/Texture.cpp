@@ -42,7 +42,7 @@ bool LoadTextureFromFile(
     subResource.SysMemSlicePitch = 0;
     if (FAILED(dxdevice->CreateTexture2D(&desc, &subResource, &pTexture)))
         throw std::runtime_error("Failed to load " + std::string(filename));
-
+    SETNAME(pTexture, "TextureData");
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -54,6 +54,7 @@ bool LoadTextureFromFile(
     {
         throw std::runtime_error("Failed to create ShaderResourceView");
     }
+    SETNAME((*out_srv), "TextureSRV");
     pTexture->Release();
 
     *out_width = image_width;
@@ -108,7 +109,7 @@ bool LoadCubeTextureFromFile(
     {
         throw std::runtime_error("Failed to create Texture2D");
     }
-
+    SETNAME(pTexture, "TextureData");
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -120,6 +121,7 @@ bool LoadCubeTextureFromFile(
     {
         throw std::runtime_error("Failed to create ShaderResourceView");
     }
+    SETNAME((*out_srv), "TextureSRV");
     pTexture->Release();
 
     *out_width = image_width;
