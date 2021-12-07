@@ -101,16 +101,16 @@ static inline BOOL create_vertex_Shader(ID3D11Device* pDevice, ID3DBlob* pCode, 
 	return FAILED(hr) ? FALSE : TRUE;
 }
 
-ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader)
+SHADER_RESULT create_shader(ID3D11Device* pDevice, const char* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader)
 {
-	ERROR_CODE result = { 0 };
+	SHADER_RESULT result = { 0 };
 	FILETIME lastWrite = { 0 };
 	DWORD fileSize = { 0 };
 	char* codeBuffer = { 0 };
 
 	if (type != SHADER_PIXEL && type != SHADER_VERTEX)
 	{
-		result = ERROR_INVALID_TYPE;
+		result = SR_INVALID_TYPE;
 		goto error;
 	}
 
@@ -118,7 +118,7 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 
 	if (!fileStatus)
 	{
-		result = ERROR_FILE_LOAD_ERROR;
+		result = SR_FILE_LOAD_ERROR;
 		goto error;
 	}
 
@@ -128,7 +128,7 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 
 	if (shaderByteCode == NULL)
 	{
-		result = ERROR_SHADER_SYNTAX_ERROR;
+		result = SR_SHADER_SYNTAX_ERROR;
 		goto error;
 	}
 
@@ -140,7 +140,7 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 	shader_data* data = (shader_data*)malloc(totalSize);
 	if (data == NULL)
 	{
-		result = ERROR_OUT_OF_MEMORY;
+		result = SR_OUT_OF_MEMORY;
 		goto error;
 	}
 
@@ -160,13 +160,13 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 		HRESULT hr = pDevice->lpVtbl->CreateInputLayout(pDevice, pLayout, (UINT)layoutcount, shaderByteCode->lpVtbl->GetBufferPointer(shaderByteCode), shaderByteCode->lpVtbl->GetBufferSize(shaderByteCode), &data->input_layout);
 		if (FAILED(hr))
 		{
-			result = ERROR_INVALID_INPUT_LAYOUT;
+			result = SR_INVALID_INPUT_LAYOUT;
 			goto error;
 		}
 		BOOL res = create_vertex_Shader(pDevice, shaderByteCode, &data->vetex_shader);
 		if (!res)
 		{
-			result = ERROR_SHADER_LINKING_ERROR;
+			result = SR_SHADER_LINKING_ERROR;
 			goto error;
 		}
 	}
@@ -176,7 +176,7 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 		BOOL res = create_pixel_Shader(pDevice, shaderByteCode, &data->pixel_shader);
 		if (!res)
 		{
-			result = ERROR_SHADER_LINKING_ERROR;
+			result = SR_SHADER_LINKING_ERROR;
 			goto error;
 		}
 	}
@@ -188,16 +188,16 @@ ERROR_CODE create_shader(ID3D11Device* pDevice, const char* pPath, const char* p
 error:
 	switch (result)
 	{
-	case ERROR_SHADER_LINKING_ERROR:
+	case SR_SHADER_LINKING_ERROR:
 	{
 		if (type == SHADER_VERTEX)
 			data->input_layout->lpVtbl->Release(data->input_layout);
 	}
-	case ERROR_INVALID_INPUT_LAYOUT:
+	case SR_INVALID_INPUT_LAYOUT:
 	{
 		free(data);
 	}
-	case ERROR_OUT_OF_MEMORY:
+	case SR_OUT_OF_MEMORY:
 	{
 		shaderByteCode->lpVtbl->Release(shaderByteCode);
 	}
