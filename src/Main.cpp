@@ -2,14 +2,14 @@
 //
 //	eduRend 
 //	DirectX framework for DA307A Computer Graphics & Modelling
-//	Malmö University
+//	MalmÃ¶ University
 //
 //	Contributors:
 //
 //	Carl Johan Gribel 2016-2021, cjgribel@gmail.com
 //	Jonas Petersson
 //	Alexander Baldwin
-//	Oliver Öhrström
+//	Oliver Ã–hrstrÃ¶m
 //	Hugo Hansen
 //
 
@@ -41,6 +41,10 @@ shader_data*			g_PixelShader			= nullptr;
 InputHandler*			g_InputHandler			= nullptr;
 
 ID3D11Buffer*			g_MatrixBuffer			= nullptr;
+#ifdef _DEBUG
+ID3D11Debug*			g_DebugController		= nullptr;
+#endif // _DEBUG
+
 #ifdef _DEBUG
 ID3D11Debug*			g_DebugController		= nullptr;
 #endif // _DEBUG
@@ -197,7 +201,7 @@ void WinResize()
 	SAFE_RELEASE(g_DepthStencilView);
 
 	CreateDepthStencilView(size.x, size.y);
-
+	SETNAME(g_RenderTargetView, "RenderTargetView");
 	g_DeviceContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
 
 	// Set up the viewport.
@@ -241,7 +245,7 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 	HRESULT hr = E_FAIL;
-	for( UINT driverTypeIndex = 0; driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); driverTypeIndex++ )
+	for (UINT driverTypeIndex = 0; driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); driverTypeIndex++)
 	{
 		hr = D3D11CreateDeviceAndSwapChain(
 			nullptr,
@@ -264,8 +268,6 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 	SETNAME(g_Device, "Device");
 	SETNAME(g_DeviceContext, "Context");
 #endif // _DEBUG
-
-	
 	return hr;
 }
 
@@ -425,8 +427,6 @@ void Release()
 	SAFE_RELEASE(g_DepthStencilView);
 	SAFE_RELEASE(g_RasterState);
 	SAFE_RELEASE(g_DeviceContext);
-	delete(g_Window);
-
 #ifdef _DEBUG
 	/*
 	* Note the the Device is still alive at this point
@@ -435,4 +435,5 @@ void Release()
 	SAFE_RELEASE(g_DebugController);
 #endif
 	SAFE_RELEASE(g_Device);
+  SAFE_DELETE(g_Window);
 }
