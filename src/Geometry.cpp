@@ -174,18 +174,33 @@ OBJModel::OBJModel(
 
 	for (auto& mtl : materials)
 	{
-		HRESULT hr;
-		std::wstring wstr; // for conversion from string to wstring
+		//HRESULT hr;
+		//std::wstring wstr; // for conversion from string to wstring
 
 		// map_Kd (diffuse texture)
 		//
 		if (mtl.map_Kd.size()) {
+
+			int w, h;
+			printf("Loading texture %s - ", mtl.map_Kd.c_str());
+			//E_FAIL
+			try {
+				LoadTextureFromFile(dxdevice, mtl.map_Kd.c_str(), &mtl.map_Kd_TexSRV, &w, &h);
+				printf("OK\n");
+			}
+			catch (...) {
+				printf("FAILED\n");
+			}
+
 			// Convert the file path string to wstring
-			wstr = std::wstring(mtl.map_Kd.begin(), mtl.map_Kd.end());
+			//wstr = std::wstring(mtl.map_Kd.begin(), mtl.map_Kd.end());
 			// Load texture to device and obtain pointers to it
-			hr = -1; // DirectX::CreateWICTextureFromFile(dxdevice, dxdevice_context, wstr.c_str(), &mtl.map_Kd_Tex, &mtl.map_Kd_TexSRV);
+//			auto diffuseTex = LoadTexture(ComPtr<ID3D11Device>(dxdevice), mtl.map_Kd);
+//			mtl.map_Kd_Tex = diffuseTex.first.Get();
+//			mtl.map_Kd_TexSRV = diffuseTex.second.Get();
+			//hr = 0; // DirectX::CreateWICTextureFromFile(dxdevice, dxdevice_context, wstr.c_str(), &mtl.map_Kd_Tex, &mtl.map_Kd_TexSRV);
 			// Say how it went
-			printf("loading texture %s - %s\n", mtl.map_Kd.c_str(), SUCCEEDED(hr) ? "OK" : "FAILED");
+			//printf("loading texture %s - %s\n", mtl.map_Kd.c_str(), SUCCEEDED(hr) ? "OK" : "FAILED");
 		}
 
 		// Same thing with other textres here such as mtl.map_bump (Bump/Normal texture) etc

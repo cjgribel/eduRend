@@ -1,13 +1,13 @@
 
 //
-//  Geometry.h
+//  Model.h
 //
 //  Carl Johan Gribel 2016, cjgribel@gmail.com
 //
 
 #pragma once
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#ifndef MODEL_H
+#define MODEL_H
 
 #include "stdafx.h"
 #include <vector>
@@ -16,6 +16,7 @@
 #include "ShaderBuffers.h"
 #include "Drawcall.h"
 #include "OBJLoader.h"
+#include "Texture.h"
 
 using namespace linalg;
 

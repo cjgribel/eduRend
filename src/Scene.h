@@ -1,24 +1,43 @@
 
 #pragma once
-#ifndef PROGRAM_H
-#define PROGRAM_H
+#ifndef SCENE_H
+#define SCENE_H
 
 #include "stdafx.h"
 #include "InputHandler.h"
 #include "Camera.h"
 #include "Geometry.h"
+#include "Texture.h"
 
 // New files
 // Material
-// Texture
+// Texture <- stb
+
+// TEMP
+struct UniformBuffer { vec3f eyePos, lightPos; };
 
 class Scene
 {
 private:
 	ID3D11Device*			dxdevice;
 	ID3D11DeviceContext*	dxdevice_context;
+
+	ID3D11Buffer*			matrix_buffer = nullptr;
+	ID3D11Buffer*			uniform_buffer = nullptr;
+
 	int						window_width;
 	int						window_height;
+
+	void InitShaderBuffers();
+
+	void MapMatrixShaderBuffer(
+		mat4f ModelToWorldMatrix,
+		mat4f WorldToViewMatrix,
+		mat4f ProjectionMatrix);
+
+	void MapUniformBuffer(
+		const vec3f& eyePos,
+		const vec3f& lightPos);
 
 public:
 
@@ -68,7 +87,8 @@ void updateObjects(
 // Called every frame, after update
 //
 void renderObjects(
-	ID3D11Buffer* matrix_buffer);
+	ID3D11Buffer* matrix_buffer,
+	ID3D11DeviceContext* dxdevice_context);
 
 //
 // Called when window is resized

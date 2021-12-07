@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>lib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,6 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>lib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,6 +153,7 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\ShaderBuffers.h" />
     <ClInclude Include="src\stdafx.h" />
+    <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\vec\mat.h" />
     <ClInclude Include="src\vec\math.h" />
     <ClInclude Include="src\vec\vec.h" />
@@ -163,9 +166,14 @@
     <ClCompile Include="src\OBJLoader.cpp" />
     <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\vec\mat.cpp" />
     <ClCompile Include="src\vec\vec.cpp" />
     <ClCompile Include="src\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\default_shader.ps" />
+    <None Include="shaders\default_shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

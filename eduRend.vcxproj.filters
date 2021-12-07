@@ -13,6 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{bdc29781-2bdb-498d-83f5-a7e72559dfa1}</UniqueIdentifier>
+      <Extensions>ps;vs</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera.h">
@@ -63,6 +67,9 @@
     <ClInclude Include="lib\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Geometry.cpp">
@@ -92,5 +99,16 @@
     <ClCompile Include="src\vec\vec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\default_shader.ps">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\default_shader.vs">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

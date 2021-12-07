@@ -371,7 +371,7 @@ HRESULT Render(float deltaTime)
 	g_DeviceContext->VSSetConstantBuffers(0, 1, &g_MatrixBuffer);
 
 	// Time to render our objects
-	renderObjects(g_MatrixBuffer);
+	renderObjects(g_MatrixBuffer, g_DeviceContext);
 
 	// Swap front and back buffer
 #ifdef VSYNC
