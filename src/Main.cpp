@@ -47,7 +47,7 @@ ID3D11Debug*			g_DebugController		= nullptr;
 
 const int g_InitialWinWidth = 1024;
 const int g_InitialWinHeight = 576;
-Window* g_Window;
+std::unique_ptr<Window> g_Window;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -82,7 +82,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 #endif
 	
 	// init the win32 window
-	g_Window = new Window(hInstance, nCmdShow, g_InitialWinWidth, g_InitialWinHeight);
+	g_Window = std::make_unique<Window>(hInstance, nCmdShow, g_InitialWinWidth, g_InitialWinHeight);
 
 #ifdef USECONSOLE
 	printf("Win32-window created...\n");
@@ -425,7 +425,6 @@ void Release()
 	SAFE_RELEASE(g_DepthStencilView);
 	SAFE_RELEASE(g_RasterState);
 	SAFE_RELEASE(g_DeviceContext);
-	delete(g_Window);
 
 #ifdef _DEBUG
 	/*
