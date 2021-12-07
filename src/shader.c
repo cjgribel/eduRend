@@ -24,12 +24,12 @@ typedef struct shader_data
 		};
 		ID3D11PixelShader* pixel_shader;
 	};
-	const char* file_path;
+	const SCHAR* file_path;
 	const char* entrypoint;
 	FILETIME last_write;
 } shader_data;
 
-static BOOL load_file(const char* pPath, char** pData, DWORD* pSize, FILETIME* pLastWrite)
+static BOOL load_file(const SCHAR* pPath, char** pData, DWORD* pSize, FILETIME* pLastWrite)
 {
 	BOOL result = { 0 };
 	FILETIME lastWrite = { 0 };
@@ -37,7 +37,11 @@ static BOOL load_file(const char* pPath, char** pData, DWORD* pSize, FILETIME* p
 	HANDLE file = INVALID_HANDLE_VALUE;
 	char* buffer = NULL;
 
+#ifdef SHADER_USE_WIDECHAR
+	file = CreateFileW(pPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+#else
 	file = CreateFileA(pPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+#endif
 	if (file == INVALID_HANDLE_VALUE) goto error;
 
 	if (pLastWrite)
@@ -101,7 +105,7 @@ static inline BOOL create_vertex_Shader(ID3D11Device* pDevice, ID3DBlob* pCode, 
 	return FAILED(hr) ? FALSE : TRUE;
 }
 
-SHADER_RESULT create_shader(ID3D11Device* pDevice, const char* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader)
+SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader)
 {
 	SHADER_RESULT result = { 0 };
 	FILETIME lastWrite = { 0 };
@@ -133,7 +137,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const char* pPath, const char
 	}
 
 	size_t structureSize = sizeof(shader_data);
-	size_t pathSize = strlen(pPath) + 1;
+	size_t pathSize = strlen(pPath) * sizeof(SCHAR) + 1;
 	size_t entrypointSize = strlen(pEntrypoint) + 1;
 	size_t totalSize = structureSize + pathSize + entrypointSize;
 
@@ -144,7 +148,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const char* pPath, const char
 		goto error;
 	}
 
-	data->file_path = ((char*)data) + structureSize;
+	data->file_path = ((SCHAR*)data) + structureSize;
 	data->entrypoint = data->file_path + pathSize;
 
 	memcpy((char*)data->file_path, pPath, pathSize);

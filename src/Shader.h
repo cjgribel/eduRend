@@ -1,4 +1,15 @@
-#pragma once
+/*!
+*	@brief		Wrapper for DirextX 11 shaders
+*	@details	Contains creation, deletion and binding code for DirectX 11 shaders with optional hotreloading of the shaders at bind time.
+*	@author		Oliver Öhrström 
+*	@version	1.0
+*	@date		2021-12-07
+*	@copyright	MIT License.
+*/
+
+#ifndef _SHADER_H
+#define _SHADER_H
+
 #include <D3D11.h>
 
 #ifdef __cplusplus
@@ -6,6 +17,16 @@ extern "C" {
 #endif // __cplusplus
 
 #include <stdint.h>
+/*
+* Define this if you want to use unicode characters instead of ASCII.
+*/
+#//define SHADER_USE_WIDECHAR 
+#ifdef SHADER_USE_WIDECHAR
+#include <wchar.h>
+	typedef wchar_t SCHAR;
+#else
+	typedef char	SCHAR;
+#endif
 
 	///
 	/// Opaque data structure containing the shader data.
@@ -42,7 +63,7 @@ extern "C" {
 	/// @param pShader Pointer to the resulting shader_data.
 	/// @return Code describing the result of the creation, returns SR_OK on success.
 	/// 
-	SHADER_RESULT create_shader(ID3D11Device* pDevice, const char* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader);
+	SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader);
 	
 	///
 	/// Deletes a shader created using create_shader.
@@ -65,3 +86,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif // __cplusplus
+
+#endif // !_SHADER_H
