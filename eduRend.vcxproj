@@ -150,7 +150,7 @@
     <ClInclude Include="src\OBJLoader.h" />
     <ClInclude Include="src\parseutil.h" />
     <ClInclude Include="src\Scene.h" />
-    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\shader.h" />
     <ClInclude Include="src\ShaderBuffers.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\Texture.h" />
@@ -165,7 +165,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\OBJLoader.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\shader.c" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\vec\mat.cpp" />
     <ClCompile Include="src\vec\vec.cpp" />
