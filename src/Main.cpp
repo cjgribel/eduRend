@@ -17,7 +17,7 @@
 #define USECONSOLE
 
 #include "stdafx.h"
-#include "Shader.h"
+#include "shader.h"
 #include "Window.h"
 #include "ShaderBuffers.h"
 #include "InputHandler.h"
@@ -36,9 +36,8 @@ ID3D11Device*			g_Device				= nullptr;
 ID3D11DeviceContext*	g_DeviceContext			= nullptr;
 ID3D11RasterizerState*	g_RasterState			= nullptr;
 
-ID3D11InputLayout*		g_InputLayout			= nullptr;
-ID3D11VertexShader*		g_VertexShader			= nullptr;
-ID3D11PixelShader*		g_PixelShader			= nullptr;
+shader_data*			g_VertexShader			= nullptr;
+shader_data*			g_PixelShader			= nullptr;
 InputHandler*			g_InputHandler			= nullptr;
 
 ID3D11Buffer*			g_MatrixBuffer			= nullptr;
@@ -104,11 +103,20 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 
 			g_DeviceContext->OMSetRenderTargets( 1, &g_RenderTargetView, g_DepthStencilView );
 
-			if(SUCCEEDED(hr = CreateShadersAndInputLayout(g_Device, &g_VertexShader, &g_PixelShader, &g_InputLayout)))
+			const D3D11_INPUT_ELEMENT_DESC inputDesc[5] = {
+					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			};
+
+			if (FAILED(create_shader(g_Device, "shaders/default_shader.vs", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || FAILED(create_shader(g_Device, "shaders/default_shader.ps", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
 			{
-				InitShaderBuffers();
-				initObjects(g_InitialWinWidth, g_InitialWinHeight, g_Device, g_DeviceContext);
+				throw std::runtime_error("Failed to create shaders");
 			}
+			InitShaderBuffers();
+			initObjects(g_InitialWinWidth, g_InitialWinHeight, g_Device, g_DeviceContext);
 		}
 	}
 
@@ -356,16 +364,15 @@ HRESULT Render(float deltaTime)
 	
 	// Set topology
 	g_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	
-	// Set vertex description
-	g_DeviceContext->IASetInputLayout(g_InputLayout);
-	
+		
 	// Set shaders
-	g_DeviceContext->VSSetShader(g_VertexShader, nullptr, 0);
+	bind_shader(g_Device, g_DeviceContext, g_VertexShader);
+	bind_shader(g_Device, g_DeviceContext, g_PixelShader);
+	//g_DeviceContext->VSSetShader(g_VertexShader, nullptr, 0);
 	g_DeviceContext->HSSetShader(nullptr, nullptr, 0);
 	g_DeviceContext->DSSetShader(nullptr, nullptr, 0);
 	g_DeviceContext->GSSetShader(nullptr, nullptr, 0);
-	g_DeviceContext->PSSetShader(g_PixelShader, nullptr, 0);
+	//g_DeviceContext->PSSetShader(g_PixelShader, nullptr, 0);
 	
 	// Set matrix buffers
 	g_DeviceContext->VSSetConstantBuffers(0, 1, &g_MatrixBuffer);
@@ -388,17 +395,16 @@ void Release()
 
 	// free D3D stuff
 	SAFE_DELETE(g_InputHandler);
+
+	delete_shader(g_VertexShader);
+	delete_shader(g_PixelShader);
+
 	SAFE_RELEASE(g_SwapChain);
 	SAFE_RELEASE(g_RenderTargetView);
 	SAFE_RELEASE(g_DepthStencil);
 	SAFE_RELEASE(g_DepthStencilView);
 	SAFE_RELEASE(g_RasterState);
 
-	SAFE_RELEASE(g_InputLayout);
-	SAFE_RELEASE(g_VertexShader);
-	SAFE_RELEASE(g_PixelShader);
-
-	SAFE_RELEASE(g_VertexShader);
 	SAFE_RELEASE(g_DeviceContext);
 	SAFE_RELEASE(g_Device);
 }
