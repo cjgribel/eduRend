@@ -45,9 +45,9 @@ ID3D11Buffer*			g_MatrixBuffer			= nullptr;
 ID3D11Debug*			g_DebugController		= nullptr;
 #endif // _DEBUG
 
-#ifdef _DEBUG
-ID3D11Debug*			g_DebugController		= nullptr;
-#endif // _DEBUG
+//#ifdef _DEBUG
+//ID3D11Debug*			g_DebugController		= nullptr;
+//#endif // _DEBUG
 
 const int g_InitialWinWidth = 1024;
 const int g_InitialWinHeight = 576;
