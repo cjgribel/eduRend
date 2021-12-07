@@ -150,21 +150,21 @@ void initObjects(
 
 	// Create objects
 	quad = new QuadModel(dxdevice, dxdevice_context);
-	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
+	//sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 
-	// TODO: remove
-	cube_texture.filenames[0] = "assets/cubemaps/debug_cubemap/debug_posx.png";
-	cube_texture.filenames[1] = "assets/cubemaps/debug_cubemap/debug_negx.png";
-	cube_texture.filenames[2] = "assets/cubemaps/debug_cubemap/debug_posy.png";
-	cube_texture.filenames[3] = "assets/cubemaps/debug_cubemap/debug_negy.png";
-	cube_texture.filenames[4] = "assets/cubemaps/debug_cubemap/debug_posz.png";
-	cube_texture.filenames[5] = "assets/cubemaps/debug_cubemap/debug_negz.png";
-	try {
-		LoadCubeTextureFromFile(dxdevice, cube_texture.filenames, &cube_texture.texture_srv, &cube_texture.width, &cube_texture.height);
-	}
-	catch (...) {
-		printf("FAILED\n");
-	}
+	//// TODO: remove
+	//cube_texture.filenames[0] = "assets/cubemaps/debug_cubemap/debug_posx.png";
+	//cube_texture.filenames[1] = "assets/cubemaps/debug_cubemap/debug_negx.png";
+	//cube_texture.filenames[2] = "assets/cubemaps/debug_cubemap/debug_posy.png";
+	//cube_texture.filenames[3] = "assets/cubemaps/debug_cubemap/debug_negy.png";
+	//cube_texture.filenames[4] = "assets/cubemaps/debug_cubemap/debug_posz.png";
+	//cube_texture.filenames[5] = "assets/cubemaps/debug_cubemap/debug_negz.png";
+	//try {
+	//	LoadCubeTextureFromFile(dxdevice, cube_texture.filenames, &cube_texture.texture_srv, &cube_texture.width, &cube_texture.height);
+	//}
+	//catch (...) {
+	//	printf("FAILED\n");
+	//}
 }
 
 //
@@ -233,8 +233,8 @@ void renderObjects(ID3D11Buffer* matrix_buffer,
 	quad->Render();
 
 	// Load matrices + Sponza's transformation to the device and render it
-	sponza->MapMatrixBuffers(matrix_buffer, Msponza, Mview, Mproj);
-	sponza->Render();
+	/*sponza->MapMatrixBuffers(matrix_buffer, Msponza, Mview, Mproj);
+	sponza->Render();*/
 }
 
 //
@@ -252,6 +252,6 @@ void WindowResize(int width, int height)
 void releaseObjects()
 {
 	SAFE_DELETE(quad);
-	SAFE_DELETE(sponza);
+	//SAFE_DELETE(sponza);
 	SAFE_DELETE(camera);
 }

@@ -43,6 +43,10 @@ InputHandler*			g_InputHandler			= nullptr;
 
 ID3D11Buffer*			g_MatrixBuffer			= nullptr;
 
+#ifdef _DEBUG
+ID3D11Debug*			g_DebugController		= nullptr;
+#endif // _DEBUG
+
 const int g_InitialWinWidth = 1024;
 const int g_InitialWinHeight = 576;
 std::unique_ptr<Window> g_Window;
@@ -185,7 +189,7 @@ void WinResize()
 	SAFE_RELEASE(g_DepthStencilView);
 
 	CreateDepthStencilView(size.x, size.y);
-
+	SETNAME(g_RenderTargetView, "RenderTargetView");
 	g_DeviceContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
 
 	// Set up the viewport.
@@ -224,15 +228,18 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 
 	D3D_FEATURE_LEVEL featureLevelsToTry[] = { D3D_FEATURE_LEVEL_11_0 };
 	D3D_FEATURE_LEVEL initiatedFeatureLevel;
-
+	UINT flags = 0;
+#ifdef _DEBUG
+	flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
 	HRESULT hr = E_FAIL;
-	for( UINT driverTypeIndex = 0; driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); driverTypeIndex++ )
+	for (UINT driverTypeIndex = 0; driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); driverTypeIndex++)
 	{
 		hr = D3D11CreateDeviceAndSwapChain(
 			nullptr,
 			driverTypes[driverTypeIndex],
 			nullptr,
-			0,
+			flags,
 			featureLevelsToTry,
 			ARRAYSIZE(featureLevelsToTry),
 			D3D11_SDK_VERSION,
@@ -242,6 +249,13 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 			&initiatedFeatureLevel,
 			&g_DeviceContext);
 	}
+#ifdef _DEBUG
+	g_Device->QueryInterface(&g_DebugController);
+	//g_DebugController->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	SETNAME(g_SwapChain, "Swapchain");
+	SETNAME(g_Device, "Device");
+	SETNAME(g_DeviceContext, "Context");
+#endif // _DEBUG
 	return hr;
 }
 
@@ -260,6 +274,7 @@ void InitRasterizerState()
 	rasterizerState.AntialiasedLineEnable = false;
 
 	g_Device->CreateRasterizerState(&rasterizerState, &g_RasterState);
+	SETNAME(g_RasterState, "RasterizerState");
 	g_DeviceContext->RSSetState(g_RasterState);
 }
 
@@ -277,6 +292,7 @@ void InitShaderBuffers()
 	MatrixBuffer_desc.StructureByteStride = 0;
 
 	ASSERT(hr = g_Device->CreateBuffer(&MatrixBuffer_desc, nullptr, &g_MatrixBuffer));
+	SETNAME(g_MatrixBuffer, "MatrixBuffer");
 }
 
 HRESULT CreateRenderTargetView()
@@ -287,6 +303,7 @@ HRESULT CreateRenderTargetView()
 	if(SUCCEEDED(hr = g_SwapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&pBackBuffer)))
 	{
 		hr = g_Device->CreateRenderTargetView( pBackBuffer, nullptr, &g_RenderTargetView );
+		SETNAME(g_RenderTargetView, "RenderTargetView");
 		SAFE_RELEASE(pBackBuffer);
 	}
 
@@ -313,7 +330,7 @@ HRESULT CreateDepthStencilView(int width, int height)
 	hr = g_Device->CreateTexture2D( &descDepth, nullptr, &g_DepthStencil );
 	if( FAILED(hr) )
 		return hr;
-
+	SETNAME(g_DepthStencil, "DepthStencil");
 	// Create the depth stencil view
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 	ZeroMemory(&descDSV, sizeof(descDSV));
@@ -321,7 +338,7 @@ HRESULT CreateDepthStencilView(int width, int height)
 	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	descDSV.Texture2D.MipSlice = 0;
 	hr = g_Device->CreateDepthStencilView( g_DepthStencil, &descDSV, &g_DepthStencilView );
-	
+	SETNAME(g_DepthStencilView, "DepthStencilView");
 	return hr;
 }
 
@@ -388,6 +405,8 @@ void Release()
 
 	// free D3D stuff
 	SAFE_DELETE(g_InputHandler);
+
+	SAFE_RELEASE(g_MatrixBuffer);
 	SAFE_RELEASE(g_SwapChain);
 	SAFE_RELEASE(g_RenderTargetView);
 	SAFE_RELEASE(g_DepthStencil);
@@ -400,5 +419,13 @@ void Release()
 
 	SAFE_RELEASE(g_VertexShader);
 	SAFE_RELEASE(g_DeviceContext);
+
+#ifdef _DEBUG
+	/*
+	* Note the the Device is still alive at this point
+	*/
+	g_DebugController->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+	SAFE_RELEASE(g_DebugController);
+#endif
 	SAFE_RELEASE(g_Device);
 }

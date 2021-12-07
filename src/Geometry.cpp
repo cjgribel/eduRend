@@ -76,6 +76,7 @@ QuadModel::QuadModel(
 	vdata.pSysMem = &vertices[0];
 	// Create vertex buffer on device using descriptor & data
 	const HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
+	SETNAME(vertex_buffer, "VertexBuffer");
 
 	//  Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
@@ -89,6 +90,7 @@ QuadModel::QuadModel(
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
+	SETNAME(index_buffer, "IndexBuffer");
 
 	nbr_indices = indices.size();
 }
@@ -153,6 +155,7 @@ OBJModel::OBJModel(
 	vdata.pSysMem = &(mesh->vertices)[0];
 	// Create vertex buffer on device using descriptor & data
 	HRESULT vhr = dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
+	SETNAME(vertex_buffer, "VertexBuffer");
 
 	// Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
@@ -166,6 +169,7 @@ OBJModel::OBJModel(
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
 	HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
+	SETNAME(index_buffer, "IndexBuffer");
 
 	// Copy materials from mesh
 	append_materials(mesh->materials);
