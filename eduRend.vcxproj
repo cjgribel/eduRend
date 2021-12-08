@@ -172,8 +172,8 @@
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\default_shader.ps" />
-    <None Include="shaders\default_shader.vs" />
+    <None Include="shaders\pixel_shader.hlsl" />
+    <None Include="shaders\vertex_shader.hlsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -45,10 +45,6 @@ ID3D11Buffer*			g_MatrixBuffer			= nullptr;
 ID3D11Debug*			g_DebugController		= nullptr;
 #endif // _DEBUG
 
-//#ifdef _DEBUG
-//ID3D11Debug*			g_DebugController		= nullptr;
-//#endif // _DEBUG
-
 const int g_InitialWinWidth = 1024;
 const int g_InitialWinHeight = 576;
 Window* g_Window;
@@ -118,7 +114,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 
-			if (FAILED(create_shader(g_Device, "shaders/default_shader.vs", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || FAILED(create_shader(g_Device, "shaders/default_shader.ps", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
+			if (FAILED(create_shader(g_Device,  "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || 
+				FAILED(create_shader(g_Device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
 			{
 				throw std::runtime_error("Failed to create shaders");
 			}

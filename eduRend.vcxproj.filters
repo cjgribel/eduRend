@@ -104,10 +104,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\default_shader.ps">
+    <None Include="shaders\pixel_shader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\default_shader.vs">
+    <None Include="shaders\vertex_shader.hlsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
