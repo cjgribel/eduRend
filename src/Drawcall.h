@@ -15,6 +15,8 @@
 #include "stdafx.h"
 #include "vec/vec.h"
 
+#include "Texture.h"
+
 using namespace linalg;
 
 struct Vertex
@@ -29,17 +31,17 @@ struct Vertex
 //
 struct Material
 {
-	//  Phong color components: ambient, diffuse & specular
+	// Phong color components (ambient, diffuse & specular),
+	// with default values
     vec3f Ka = {0,0.5,0}, Kd = {0,0.5,0}, Ks = {1,1,1};
     
-	std::string name;		// Material name
-	std::string map_Kd;		// Texture file path
-	std::string map_bump;	// Texture file path
+	std::string name;
+	std::string Kd_texture_filename;
+	std::string normal_texture_filename;
 
-	// Device texture pointers
-	ID3D11ShaderResourceView*	map_Kd_TexSRV	= nullptr;
-	ID3D11Resource*				map_Kd_Tex		= nullptr;
-	// other map types here ...
+	// Device textures
+	Texture diffuse_texture;
+	// + other texture types
 };
 
 static Material DefaultMaterial = Material();

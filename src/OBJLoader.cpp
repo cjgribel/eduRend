@@ -113,7 +113,7 @@ void OBJLoader::LoadMaterials(
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->map_Kd = path + mapfile;
+                current_mtl->Kd_texture_filename = path + mapfile;
             else
                 throw std::runtime_error(std::string("Error: no allowed format found for 'map_Kd' in material ") + current_mtl->name);
         }
@@ -122,7 +122,7 @@ void OBJLoader::LoadMaterials(
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->map_bump = path+mapfile;
+                current_mtl->normal_texture_filename = path+mapfile;
             else
                 throw std::runtime_error(std::string("Error: no allowed format found for 'map_bump' in material ") + current_mtl->name);
         }
@@ -131,7 +131,7 @@ void OBJLoader::LoadMaterials(
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->map_bump = path+mapfile;
+                current_mtl->normal_texture_filename = path+mapfile;
             else
                 throw std::runtime_error(std::string("Error: no allowed format found for 'bump' in material ") + current_mtl->name);
         }

@@ -175,42 +175,27 @@ OBJModel::OBJModel(
 	append_materials(mesh->materials);
 
 	// Go through materials and load textures (if any) to device
-
+	std::cout << "Loading textures..." << std::endl;
 	for (auto& mtl : materials)
 	{
-		//HRESULT hr;
-		//std::wstring wstr; // for conversion from string to wstring
+		HRESULT hr;
 
-		// map_Kd (diffuse texture)
+		// Load Diffuse texture
 		//
-		if (mtl.map_Kd.size()) {
+		if (mtl.Kd_texture_filename.size()) {
 
-			int w, h;
-			printf("Loading texture %s - ", mtl.map_Kd.c_str());
-			//E_FAIL
-			try {
-				LoadTextureFromFile(dxdevice, mtl.map_Kd.c_str(), &mtl.map_Kd_TexSRV, &w, &h);
-				printf("OK\n");
-			}
-			catch (...) {
-				printf("FAILED\n");
-			}
-
-			// Convert the file path string to wstring
-			//wstr = std::wstring(mtl.map_Kd.begin(), mtl.map_Kd.end());
-			// Load texture to device and obtain pointers to it
-//			auto diffuseTex = LoadTexture(ComPtr<ID3D11Device>(dxdevice), mtl.map_Kd);
-//			mtl.map_Kd_Tex = diffuseTex.first.Get();
-//			mtl.map_Kd_TexSRV = diffuseTex.second.Get();
-			//hr = 0; // DirectX::CreateWICTextureFromFile(dxdevice, dxdevice_context, wstr.c_str(), &mtl.map_Kd_Tex, &mtl.map_Kd_TexSRV);
-			// Say how it went
-			//printf("loading texture %s - %s\n", mtl.map_Kd.c_str(), SUCCEEDED(hr) ? "OK" : "FAILED");
+			hr = LoadTextureFromFile(
+				dxdevice,
+				mtl.Kd_texture_filename.c_str(), 
+				&mtl.diffuse_texture);
+			std::cout << "\t" << mtl.Kd_texture_filename 
+				<< (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 
-		// Same thing with other textres here such as mtl.map_bump (Bump/Normal texture) etc
-		//
+		// + other texture types here - see Material class
 		// ...
 	}
+	std::cout << "Done." << std::endl;
 
 	SAFE_DELETE(mesh);
 }
@@ -236,10 +221,20 @@ void OBJModel::Render() const
 		const Material& mtl = materials[irange.mtl_index];
 
 		// Bind textures
-		dxdevice_context->PSSetShaderResources(0, 1, &mtl.map_Kd_TexSRV);
+		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
 		// ...other textures here (see material_t)
 
 		// Make the drawcall
 		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
+	}
+}
+
+OBJModel::~OBJModel()
+{
+	for (auto& material : materials)
+	{
+		SAFE_RELEASE(material.diffuse_texture.texture_SRV);
+
+		// Release other used textures ...
 	}
 }

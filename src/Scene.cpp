@@ -127,7 +127,7 @@ float camera_vel = 5.0f;	// Camera movement velocity in units/s
 float fps_cooldown = 0;
 
 // TOD: remove
-CubeTexture cube_texture;
+Texture cube_texture;
 
 //
 // Called at initialization
@@ -153,18 +153,21 @@ void initObjects(
 	sponza = new OBJModel("assets/crytek-sponza/sponza.obj", dxdevice, dxdevice_context);
 
 	// TODO: remove
-	cube_texture.filenames[0] = "assets/cubemaps/debug_cubemap/debug_posx.png";
-	cube_texture.filenames[1] = "assets/cubemaps/debug_cubemap/debug_negx.png";
-	cube_texture.filenames[2] = "assets/cubemaps/debug_cubemap/debug_posy.png";
-	cube_texture.filenames[3] = "assets/cubemaps/debug_cubemap/debug_negy.png";
-	cube_texture.filenames[4] = "assets/cubemaps/debug_cubemap/debug_posz.png";
-	cube_texture.filenames[5] = "assets/cubemaps/debug_cubemap/debug_negz.png";
-	try {
-		LoadCubeTextureFromFile(dxdevice, cube_texture.filenames, &cube_texture.texture_srv, &cube_texture.width, &cube_texture.height);
-	}
-	catch (...) {
-		printf("FAILED\n");
-	}
+	const char* cube_filenames[] = 
+	{ 
+		{"assets/cubemaps/debug_cubemap/debug_posx.png"},
+		{"assets/cubemaps/debug_cubemap/debug_negx.png"},
+		{"assets/cubemaps/debug_cubemap/debug_posy.png"},
+		{"assets/cubemaps/debug_cubemap/debug_negy.png"},
+		{"assets/cubemaps/debug_cubemap/debug_posz.png"},
+		{"assets/cubemaps/debug_cubemap/debug_negz.png"},
+	};
+	HRESULT hr = LoadCubeTextureFromFile(
+		dxdevice,
+		cube_filenames,
+		&cube_texture);
+	if (SUCCEEDED(hr)) std::cout << "Cubemap OK" << std::endl;
+	else std::cout << "Cubemap failed to load" << std::endl;
 }
 
 //
@@ -222,7 +225,7 @@ void renderObjects(ID3D11Buffer* matrix_buffer,
 {
 	// TODO: remove
 //  cube map (slot 2)
-	dxdevice_context->PSSetShaderResources(2, 1, &cube_texture.texture_srv);
+	dxdevice_context->PSSetShaderResources(2, 1, &cube_texture.texture_SRV);
 
 	// Obtain the matrices needed for rendering from the camera
 	Mview = camera->get_WorldToViewMatrix();
@@ -254,4 +257,7 @@ void releaseObjects()
 	SAFE_DELETE(quad);
 	SAFE_DELETE(sponza);
 	SAFE_DELETE(camera);
+
+	// TODO: remove
+	SAFE_RELEASE(cube_texture.texture_SRV);
 }

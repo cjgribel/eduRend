@@ -107,7 +107,7 @@ public:
 
 	virtual void Render() const;
 
-	~OBJModel() { }
+	~OBJModel();
 };
 
 #endif

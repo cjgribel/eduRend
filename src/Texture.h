@@ -18,32 +18,22 @@
 
 struct Texture
 {
-	const char* filename;
 	int width = 0;
 	int height = 0;
-	ID3D11ShaderResourceView** texture_srv = nullptr;
+	ID3D11ShaderResourceView* texture_SRV = nullptr;
+
+	// Allow cast to bool ("invariant") to see if this is a valid texture
+	operator bool() { return (bool)texture_SRV && width && height; }
 };
 
-struct CubeTexture
-{
-	const char* filenames[6];
-	int width;
-	int height;
-    ID3D11ShaderResourceView* texture_srv = nullptr;
-};
-
-bool LoadTextureFromFile(
+HRESULT LoadTextureFromFile(
 	ID3D11Device* dxdevice,
-	const char* filenames,
-	ID3D11ShaderResourceView** out_srv,
-	int* out_width,
-	int* out_height);
+	const char* filename,
+	Texture* texture_out);
 
-bool LoadCubeTextureFromFile(
+HRESULT LoadCubeTextureFromFile(
 	ID3D11Device* dxdevice,
-	const char** filename,
-	ID3D11ShaderResourceView** out_srv,
-	int* out_width,
-	int* out_height);
+	const char** filenames,
+	Texture* texture_out);
 
 #endif
