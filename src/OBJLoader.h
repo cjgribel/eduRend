@@ -12,11 +12,16 @@
 #include <string>
 #include "Drawcall.h"
 
+// Make sure loaded normals face in the same direction
+// as the triangle's CCW normal
 #define MESH_FORCE_CCW
+// Sort drawcalls based on material - usually a good idea
 #define MESH_SORT_DRAWCALLS
 
 // Accepted image formats
-#define ALLOWED_TEXTURE_SUFFIXES { "bmp", "jpg", "png", "tiff", "gif" }
+// Note: this is a short list, more formats may be accepted -
+// see https://github.com/nothings/stb/blob/master/stb_image.h
+#define ALLOWED_TEXTURE_SUFFIXES { "bmp", "jpg", "png", "tga", "gif" }
 
 //
 // OBJ Loader
@@ -37,7 +42,8 @@ public:
         bool auto_generate_normals = true,
         bool triangulate = true);
 
-    bool has_normals, has_texcoords;
+    bool has_normals = false;
+    bool has_texcoords = false;
 
     std::vector<Vertex> vertices;
     std::vector<Drawcall> drawcalls;

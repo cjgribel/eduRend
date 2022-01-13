@@ -31,13 +31,16 @@ struct Vertex
 //
 struct Material
 {
-	// Phong color components (ambient, diffuse & specular),
+	// Color components (ambient, diffuse & specular),
 	// with default values
     vec3f Ka = {0,0.5,0}, Kd = {0,0.5,0}, Ks = {1,1,1};
     
 	std::string name;
+
+	// File paths to textures
 	std::string Kd_texture_filename;
 	std::string normal_texture_filename;
+	// + more texture types (extend OBJLoader::LoadMaterials if needed)
 
 	// Device textures
 	Texture diffuse_texture;
@@ -48,12 +51,12 @@ static Material DefaultMaterial = Material();
 
 typedef std::unordered_map<std::string, Material> MaterialHash;
 
-struct triangle 
+struct Triangle 
 { 
 	unsigned vi[3]; 
 };
 
-struct quad_t_
+struct Quad
 { 
 	unsigned vi[4];
 };
@@ -62,10 +65,10 @@ struct Drawcall
 {
     std::string group_name;
     int mtl_index = -1;
-    std::vector<triangle> tris;
-    std::vector<quad_t_> quads;
+    std::vector<Triangle> tris;
+    std::vector<Quad> quads;
     
-	// make sortable w.r.t. material
+	// Make sortable w.r.t. material
     bool operator < (const Drawcall& dc) const
     {
         return mtl_index < dc.mtl_index;

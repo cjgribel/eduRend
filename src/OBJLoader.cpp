@@ -208,7 +208,7 @@ void OBJLoader::Load(
 		{
 			// update vertex offset and mark end to a face section
 			if (face_section) {
-				last_ofs = file_vertices.size();
+				last_ofs = (int)file_vertices.size();
 				face_section = false;
 			}
 
@@ -384,7 +384,7 @@ void OBJLoader::Load(
 		//
 		for (auto &tri : dc.tris)
 		{
-			triangle wtri;
+			Triangle wtri;
 
 			for (int i = 0; i < 3; i++)
 			{
@@ -418,7 +418,7 @@ void OBJLoader::Load(
 		//
 		for (auto &quad : dc.quads)
 		{
-			quad_t_ wquad;
+			Quad wquad;
 
 			for (int i = 0; i < 4; i++)
 			{
@@ -456,11 +456,11 @@ void OBJLoader::Load(
 	//
 	int tris = 0, quads = 0;
 	for (auto &dc : drawcalls){
-		tris += dc.tris.size();
-		quads += dc.quads.size();
+		tris += (int)dc.tris.size();
+		quads += (int)dc.quads.size();
 	}
 	printf("\t%d vertices\n\t%d drawcalls\n\t%d triangles\n\t%d quads\n",
-		vertices.size(), drawcalls.size(), tris, quads);
+		(int)vertices.size(), (int)drawcalls.size(), tris, quads);
 	printf("Loaded materials:\n");
 	for (auto &mtl : materials)
 		printf("\t%s\n", mtl.name.c_str());

@@ -14,17 +14,23 @@
 
 using namespace linalg;
 
-class camera_t
+class Camera
 {
 public:
-
-	float vfov, aspect;	// Aperture attributes
-	float zNear, zFar;	// Clip planes
-						// zNear should be >0
-						// zFar should depend on the size of the scene
+	// Aperture attributes
+	float vfov, aspect;	
+	
+	// Clip planes in view space coordinates
+	// Evrything outside of [zNear, zFar] is clipped away on the GPU side
+	// zNear should be > 0
+	// zFar should depend on the size of the scene
+	// This range should be kept as tight as possibly to improve
+	// numerical precision in the z-buffer
+	float zNear, zFar;	
+						
 	vec3f position;
 
-	camera_t(
+	Camera(
 		float vfov,
 		float aspect,
 		float zNear,
@@ -63,8 +69,8 @@ public:
 	}
 
 	// Matrix transforming from View space to Clip space
-	// In a performance sensitive situation this matrix can be precomputed, as long as
-	// all parameters are constant (which typically is the case)
+	// In a performance sensitive situation this matrix should be precomputed
+	// if possible
 	//
 	mat4f get_ProjectionMatrix()
 	{

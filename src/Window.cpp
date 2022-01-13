@@ -64,7 +64,7 @@ bool Window::SizeChanged() const noexcept
 //	return !m_keys[static_cast<int>(key)];
 //}
 
-Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_windowHandle(nullptr), m_width(width), m_height(height)
+Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_windowHandle(nullptr), m_width(width), m_height(height), m_sizeChanged(false)
 {
 	// Static instance to handle window callbacks
 	if (s_instance)

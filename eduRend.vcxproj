@@ -144,7 +144,7 @@
     <ClInclude Include="lib\stb_image.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawcall.h" />
-    <ClInclude Include="src\Geometry.h" />
+    <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\InputHandler.h" />
     <ClInclude Include="src\Keycodes.h" />
     <ClInclude Include="src\OBJLoader.h" />
@@ -160,7 +160,7 @@
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Geometry.cpp" />
+    <ClCompile Include="src\Model.cpp" />
     <ClCompile Include="src\InputHandler.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\OBJLoader.cpp" />

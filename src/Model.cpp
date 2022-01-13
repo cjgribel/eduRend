@@ -1,29 +1,10 @@
-
 //
-//  Geometry.cpp
+//  Model.cpp
 //
-//  Carl Johan Gribel 2016, cjgribel@gmail.com
+//  CJ Gribel 2016, cjgribel@gmail.com
 //
 
-#include "Geometry.h"
-
-
-void Model::MapMatrixBuffers(
-	ID3D11Buffer* matrix_buffer,
-	mat4f ModelToWorldMatrix,
-	mat4f WorldToViewMatrix,
-	mat4f ProjectionMatrix)
-{
-	// Map the resource buffer, obtain a pointer and then write our matrices to it
-	D3D11_MAPPED_SUBRESOURCE resource;
-	dxdevice_context->Map(matrix_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
-	MatrixBuffer_t* matrix_buffer_ = (MatrixBuffer_t*)resource.pData;
-	matrix_buffer_->ModelToWorldMatrix = ModelToWorldMatrix;
-	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
-	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
-	dxdevice_context->Unmap(matrix_buffer, 0);
-}
-
+#include "Model.h"
 
 QuadModel::QuadModel(
 	ID3D11Device* dxdevice,
@@ -70,7 +51,7 @@ QuadModel::QuadModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = vertices.size()*sizeof(Vertex);
+	vbufferDesc.ByteWidth = (UINT)(vertices.size()*sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
@@ -84,7 +65,7 @@ QuadModel::QuadModel(
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = indices.size()*sizeof(unsigned);
+	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
@@ -92,15 +73,12 @@ QuadModel::QuadModel(
 	const HRESULT ihr = dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
 	SETNAME(index_buffer, "IndexBuffer");
     
-	nbr_indices = indices.size();
+	nbr_indices = (unsigned int)indices.size();
 }
 
 
 void QuadModel::Render() const
 {
-	// Set topology (IA = Input Assembler stage)
-	dxdevice_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	// Bind our vertex buffer
 	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
@@ -127,7 +105,7 @@ OBJModel::OBJModel(
 	// Load and organize indices in ranges per drawcall (material)
 
 	std::vector<unsigned> indices;
-	size_t i_ofs = 0;
+	unsigned int i_ofs = 0;
 
 	for (auto& dc : mesh->drawcalls)
 	{
@@ -136,11 +114,11 @@ OBJModel::OBJModel(
 			indices.insert(indices.end(), tri.vi, tri.vi + 3);
 
 		// Create a range
-		size_t i_size = dc.tris.size() * 3;
+		unsigned int i_size = (unsigned int)dc.tris.size() * 3;
 		int mtl_index = dc.mtl_index > -1 ? dc.mtl_index : -1;
 		index_ranges.push_back({ i_ofs, i_size, 0, mtl_index });
 
-		i_ofs = indices.size();
+		i_ofs = (unsigned int)indices.size();
 	}
 
 	// Vertex array descriptor
@@ -149,7 +127,7 @@ OBJModel::OBJModel(
 	vbufferDesc.CPUAccessFlags = 0;
 	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = mesh->vertices.size()*sizeof(Vertex);
+	vbufferDesc.ByteWidth = (UINT)(mesh->vertices.size()*sizeof(Vertex));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &(mesh->vertices)[0];
@@ -163,7 +141,7 @@ OBJModel::OBJModel(
 	ibufferDesc.CPUAccessFlags = 0;
 	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = indices.size()*sizeof(unsigned);
+	ibufferDesc.ByteWidth = (UINT)(indices.size()*sizeof(unsigned));
 	// Data resource
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
@@ -203,9 +181,6 @@ OBJModel::OBJModel(
 
 void OBJModel::Render() const
 {
-	// Set topology
-	dxdevice_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	// Bind vertex buffer
 	const UINT32 stride = sizeof(Vertex);
 	const UINT32 offset = 0;
@@ -220,9 +195,9 @@ void OBJModel::Render() const
 		// Fetch material
 		const Material& mtl = materials[irange.mtl_index];
 
-		// Bind textures
+		// Bind diffuse texture to slot t0 of the PS
 		dxdevice_context->PSSetShaderResources(0, 1, &mtl.diffuse_texture.texture_SRV);
-		// ...other textures here (see material_t)
+		// + bind other textures here, e.g. a normal map, to appropriate slots
 
 		// Make the drawcall
 		dxdevice_context->DrawIndexed(irange.size, irange.start, 0);

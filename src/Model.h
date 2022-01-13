@@ -41,15 +41,6 @@ public:
 	{ }
 
 	//
-	// Map and update the matrix buffer
-	//
-	virtual void MapMatrixBuffers(
-		ID3D11Buffer* matrix_buffer,
-		mat4f ModelToWorldMatrix,
-		mat4f WorldToViewMatrix,
-		mat4f ProjectionMatrix);
-
-	//
 	// Abstract render method: must be implemented by derived classes
 	//
 	virtual void Render() const = 0;
@@ -82,15 +73,15 @@ public:
 class OBJModel : public Model
 {
 	// index ranges, representing drawcalls, within an index array
-	struct index_range_t
+	struct IndexRange
 	{
-		size_t start;
-		size_t size;
+		unsigned int start;
+		unsigned int size;
 		unsigned ofs;
 		int mtl_index;
 	};
 
-	std::vector<index_range_t> index_ranges;
+	std::vector<IndexRange> index_ranges;
 	std::vector<Material> materials;
 
 	void append_materials(const std::vector<Material>& mtl_vec)

@@ -1,5 +1,5 @@
 
-cbuffer MatrixBuffer : register(b0)
+cbuffer TransformationBuffer : register(b0)
 {
 	matrix ModelToWorldMatrix;
 	matrix WorldToViewMatrix;

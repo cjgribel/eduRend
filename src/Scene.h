@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include "InputHandler.h"
 #include "Camera.h"
-#include "Geometry.h"
+#include "Model.h"
 #include "Texture.h"
 
 // New files
@@ -14,30 +14,15 @@
 // Texture <- stb
 
 // TEMP
-struct UniformBuffer { vec3f eyePos, lightPos; };
+
 
 class Scene
 {
-private:
+protected:
 	ID3D11Device*			dxdevice;
 	ID3D11DeviceContext*	dxdevice_context;
-
-	ID3D11Buffer*			matrix_buffer = nullptr;
-	ID3D11Buffer*			uniform_buffer = nullptr;
-
 	int						window_width;
 	int						window_height;
-
-	void InitShaderBuffers();
-
-	void MapMatrixShaderBuffer(
-		mat4f ModelToWorldMatrix,
-		mat4f WorldToViewMatrix,
-		mat4f ProjectionMatrix);
-
-	void MapUniformBuffer(
-		const vec3f& eyePos,
-		const vec3f& lightPos);
 
 public:
 
@@ -47,57 +32,100 @@ public:
 		int window_width,
 		int window_height);
 
-	void Init();
+	virtual void Init() = 0;
 
-	void Update(
+	virtual void Update(
 		float dt,
-		InputHandler* input_handler);
+		InputHandler* input_handler) = 0;
 	
-	void Render();
+	virtual void Render() = 0;
 	
-	void Release();
-	
-	void WindowResize(
+	virtual void Release() = 0;
+
+	virtual void WindowResize(
 		int window_width,
 		int window_height);
 };
 
+class OurTestScene : public Scene
+{
+	//
+	// Constant buffers (CBuffers) for data that is sent to shaders
+	//
 
+	// CBuffer for transformation matrices
+	ID3D11Buffer* transformation_buffer = nullptr;
+	// + other CBuffers
 
+	// 
+	// CBuffer client-side definitions
+	// These must match the corresponding shader definitions 
+	//
 
+	struct TransformationBuffer
+	{
+		mat4f ModelToWorldMatrix;
+		mat4f WorldToViewMatrix;
+		mat4f ProjectionMatrix;
+	};
 
+	//
+	// Scene content
+	//
+	Camera* camera;
 
-//
-// Called at initialization
-//
-void initObjects(
-	unsigned window_width,
-	unsigned window_height,
-	ID3D11Device* dxdevice,
-	ID3D11DeviceContext* dxdevice_context);
+	QuadModel* quad;
+	OBJModel* sponza;
 
-//
-// Called every frame
-//
-void updateObjects(
-	float dt, 
-	InputHandler* input_handler);
+	// Model-to-world transformation matrices
+	mat4f Msponza;
+	mat4f Mquad;
 
-//
-// Called every frame, after update
-//
-void renderObjects(
-	ID3D11Buffer* matrix_buffer,
-	ID3D11DeviceContext* dxdevice_context);
+	// World-to-view matrix
+	mat4f Mview;
+	// Projection matrix
+	mat4f Mproj;
 
-//
-// Called when window is resized
-//
-void WindowResize(int width, int height);
+	// Misc
+	float angle = 0;			// A per-frame updated rotation angle (radians)...
+	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
+	float camera_vel = 5.0f;	// Camera movement velocity in units/s
+	float fps_cooldown = 0;
 
-//
-// Called at termination
-//
-void releaseObjects();
+	// TOD: remove
+	Texture cube_texture;
+
+	void InitTransformationBuffer();
+
+	void UpdateTransformationBuffer(
+		mat4f ModelToWorldMatrix,
+		mat4f WorldToViewMatrix,
+		mat4f ProjectionMatrix);
+
+	void UpdateUniformBuffer(
+		const vec3f& eyePos,
+		const vec3f& lightPos);
+
+public:
+	OurTestScene(
+		ID3D11Device* dxdevice,
+		ID3D11DeviceContext* dxdevice_context,
+		int window_width,
+		int window_height);
+
+	void Init() override;
+
+	void Update(
+		float dt,
+		InputHandler* input_handler) override;
+
+	void Render() override;
+
+	void Release() override;
+
+	void WindowResize(
+		int window_width,
+		int window_height) override;
+};
 
 #endif

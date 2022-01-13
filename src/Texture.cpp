@@ -1,13 +1,16 @@
+//
+// Texture loaders
+// Adapted from:
+// https://github-wiki-see.page/m/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
+//
+// CJ Gribel 2021
+//
 
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-// Helper function to load an image into a DX11 texture with common settings
-// Adapted from:
-// https://github-wiki-see.page/m/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
-//
 HRESULT LoadTextureFromFile(
     ID3D11Device* dxdevice,
     const char* filename,
@@ -66,7 +69,7 @@ HRESULT LoadTextureFromFile(
     {
         return hr;
     }
-    SETNAME((*out_srv), "TextureSRV");
+    SETNAME((texture_out->texture_SRV), "TextureSRV");
     
     // Cleanup
     pTexture->Release();
@@ -141,7 +144,7 @@ HRESULT LoadCubeTextureFromFile(
     {
         return hr;
     }
-    SETNAME((*out_srv), "TextureSRV");
+    SETNAME((texture_out->texture_SRV), "TextureSRV");
 
     // Cleanup
     pTexture->Release();

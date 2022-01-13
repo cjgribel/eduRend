@@ -22,7 +22,7 @@
 #include "ShaderBuffers.h"
 #include "InputHandler.h"
 #include "Camera.h"
-#include "Geometry.h"
+#include "Model.h"
 #include "Scene.h"
 
 //--------------------------------------------------------------------------------------
@@ -40,7 +40,6 @@ shader_data*			g_VertexShader			= nullptr;
 shader_data*			g_PixelShader			= nullptr;
 InputHandler*			g_InputHandler			= nullptr;
 
-ID3D11Buffer*			g_MatrixBuffer			= nullptr;
 #ifdef _DEBUG
 ID3D11Debug*			g_DebugController		= nullptr;
 #endif // _DEBUG
@@ -48,6 +47,7 @@ ID3D11Debug*			g_DebugController		= nullptr;
 const int g_InitialWinWidth = 1024;
 const int g_InitialWinHeight = 576;
 Window* g_Window;
+std::unique_ptr<Scene> scene;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -59,7 +59,7 @@ void				InitRasterizerState();
 HRESULT				CreateRenderTargetView();
 HRESULT				CreateDepthStencilView(int width, int height);
 void				SetViewport(int width, int height);
-void				InitShaderBuffers();
+//void				InitShaderBuffers();
 void				Release();
 void				WinResize();
 
@@ -69,19 +69,21 @@ void				WinResize();
 //--------------------------------------------------------------------------------------
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
-	// load console and redirect some I/O to it
-	// note: this has to be done before the win32 window is initialized, otherwise DirectInput dies
+	// Load console and redirect some I/O to it
+	// Note: this has to be done before the win32 window is initialized, otherwise DirectInput dies
 #ifdef USECONSOLE
 	AllocConsole();
 	{
-		FILE* fpstdin = stdin, * fpstdout = stdout, * fpstderr = stderr;
+		FILE* fpstdin = stdin;
+		FILE* fpstdout = stdout;
+		FILE* fpstderr = stderr;
 		freopen_s(&fpstdin, "conin$", "r", stdin);
 		freopen_s(&fpstdout, "conout$", "w", stdout);
 		freopen_s(&fpstderr, "conout$", "w", stderr);
 	}
 #endif
 	
-	// init the win32 window
+	// Init the win32 window
 	g_Window = new Window(hInstance, nCmdShow, g_InitialWinWidth, g_InitialWinHeight);
 
 #ifdef USECONSOLE
@@ -119,8 +121,13 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			{
 				throw std::runtime_error("Failed to create shaders");
 			}
-			InitShaderBuffers();
-			initObjects(g_InitialWinWidth, g_InitialWinHeight, g_Device, g_DeviceContext);
+
+			scene = std::make_unique<OurTestScene>(
+				g_Device,
+				g_DeviceContext,
+				g_InitialWinWidth,
+				g_InitialWinHeight);
+			scene->Init();
 		}
 	}
 
@@ -164,7 +171,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 // Resize render targets and swap chains.
 // If additional render targets are used (e.g. for shadow mapping),
 // they need to be handled here as well.
-// Todo: do proper error checking
 void WinResize()
 {
 	const linalg::vec2i size = g_Window->GetSize();
@@ -180,18 +186,25 @@ void WinResize()
 	HRESULT hr;
 	// Preserve the existing buffer count and format.
 	// Automatically choose the width and height to match the client rect for HWNDs.
-	hr = g_SwapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
-	// Perform error handling here!
+	ASSERT(hr = g_SwapChain->ResizeBuffers(
+		0,
+		0,
+		0,
+		DXGI_FORMAT_UNKNOWN,
+		0));
 
 	// Get buffer and create a render-target-view.
-	ID3D11Texture2D* pBuffer;
-	hr = g_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
-		(void**)&pBuffer);
-	// Perform error handling here!
+	ID3D11Texture2D* pBuffer = nullptr;
+	ASSERT(hr = g_SwapChain->GetBuffer(
+		0,
+		__uuidof(ID3D11Texture2D),
+		(void**)&pBuffer));
 
-	hr = g_Device->CreateRenderTargetView(pBuffer, NULL, &g_RenderTargetView);
+	ASSERT(hr = g_Device->CreateRenderTargetView(
+		pBuffer, 
+		NULL, 
+		&g_RenderTargetView));
 	SETNAME(g_RenderTargetView, "RenderTargetView");
-	// Perform error handling here!
 
 	pBuffer->Release();
 	SAFE_RELEASE(g_DepthStencil);
@@ -199,7 +212,10 @@ void WinResize()
 
 	CreateDepthStencilView(size.x, size.y);
 	SETNAME(g_RenderTargetView, "RenderTargetView");
-	g_DeviceContext->OMSetRenderTargets(1, &g_RenderTargetView, g_DepthStencilView);
+	g_DeviceContext->OMSetRenderTargets(
+		1, 
+		&g_RenderTargetView, 
+		g_DepthStencilView);
 
 	// Set up the viewport.
 	D3D11_VIEWPORT vp;
@@ -211,7 +227,7 @@ void WinResize()
 	vp.TopLeftY = 0;
 	g_DeviceContext->RSSetViewports(1, &vp);
 
-	WindowResize(size.x, size.y);
+	scene->WindowResize(size.x, size.y);
 }
 
 //--------------------------------------------------------------------------------------
@@ -219,7 +235,12 @@ void WinResize()
 //--------------------------------------------------------------------------------------
 HRESULT InitDirect3DAndSwapChain(int width, int height)
 {
-	D3D_DRIVER_TYPE driverTypes[] = { D3D_DRIVER_TYPE_HARDWARE, D3D_DRIVER_TYPE_WARP, D3D_DRIVER_TYPE_REFERENCE };
+	D3D_DRIVER_TYPE driverTypes[] = 
+	{ 
+		D3D_DRIVER_TYPE_HARDWARE, 
+		D3D_DRIVER_TYPE_WARP, 
+		D3D_DRIVER_TYPE_REFERENCE 
+	};
 
 	DXGI_SWAP_CHAIN_DESC sd;
 	memset(&sd, 0, sizeof(sd));
@@ -242,7 +263,9 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 	HRESULT hr = E_FAIL;
-	for (UINT driverTypeIndex = 0; driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); driverTypeIndex++)
+	for (UINT driverTypeIndex = 0; 
+		driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); 
+		driverTypeIndex++)
 	{
 		hr = D3D11CreateDeviceAndSwapChain(
 			nullptr,
@@ -287,23 +310,6 @@ void InitRasterizerState()
 	g_DeviceContext->RSSetState(g_RasterState);
 }
 
-void InitShaderBuffers()
-{
-	HRESULT hr;
-
-	// Matrix buffer
-	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
-	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
-	MatrixBuffer_desc.ByteWidth = sizeof(MatrixBuffer_t);
-	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	MatrixBuffer_desc.MiscFlags = 0;
-	MatrixBuffer_desc.StructureByteStride = 0;
-
-	ASSERT(hr = g_Device->CreateBuffer(&MatrixBuffer_desc, nullptr, &g_MatrixBuffer));
-	SETNAME(g_MatrixBuffer, "MatrixBuffer");
-}
-
 HRESULT CreateRenderTargetView()
 {
 	HRESULT hr = S_OK;
@@ -315,7 +321,6 @@ HRESULT CreateRenderTargetView()
 		SETNAME(g_RenderTargetView, "RenderTargetView");
 		SAFE_RELEASE(pBackBuffer);
 	}
-
 	return hr;
 }
 
@@ -366,24 +371,25 @@ void SetViewport(int width, int height)
 
 HRESULT Update(float deltaTime)
 {
-	updateObjects(deltaTime, g_InputHandler);
+	scene->Update(deltaTime, g_InputHandler);
 
 	return S_OK;
 }
 
 HRESULT Render(float deltaTime)
 {
-	// Clear back buffer, black color
+	// Clear color in RGBA
 	static float ClearColor[4] = { 0, 0, 0, 1 };
+	// Clear back buffer
 	g_DeviceContext->ClearRenderTargetView( g_RenderTargetView, ClearColor );
 	
-	// Clear depth buffer
+	// Clear depth and stencil buffer
 	g_DeviceContext->ClearDepthStencilView( g_DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
 	
 	// Set topology
 	g_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
-	// Set shaders
+	// Bind shaders
 	bind_shader(g_Device, g_DeviceContext, g_VertexShader);
 	bind_shader(g_Device, g_DeviceContext, g_PixelShader);
 	//g_DeviceContext->VSSetShader(g_VertexShader, nullptr, 0);
@@ -392,32 +398,28 @@ HRESULT Render(float deltaTime)
 	g_DeviceContext->GSSetShader(nullptr, nullptr, 0);
 	//g_DeviceContext->PSSetShader(g_PixelShader, nullptr, 0);
 	
-	// Set matrix buffers
-	g_DeviceContext->VSSetConstantBuffers(0, 1, &g_MatrixBuffer);
-
-	// Time to render our objects
-	renderObjects(g_MatrixBuffer, g_DeviceContext);
+	// Time for the current scene to render
+	scene->Render();
 
 	// Swap front and back buffer
 #ifdef VSYNC
+	// Swapping synchronized with monitor
 	return g_SwapChain->Present(1, 0);
 #else
+	// Swapping not synchronized with monitor
 	return g_SwapChain->Present(0, 0);
 #endif
 }
 
 void Release()
 {
-	// deallocate objects
-	releaseObjects();
+	SAFE_RELEASE(scene);
 
-	// free D3D stuff
 	SAFE_DELETE(g_InputHandler);
 
 	delete_shader(g_VertexShader);
 	delete_shader(g_PixelShader);
 
-	SAFE_RELEASE(g_MatrixBuffer);
 	SAFE_RELEASE(g_SwapChain);
 	SAFE_RELEASE(g_RenderTargetView);
 	SAFE_RELEASE(g_DepthStencil);
@@ -426,7 +428,7 @@ void Release()
 	SAFE_RELEASE(g_DeviceContext);
 #ifdef _DEBUG
 	/*
-	* Note the the Device is still alive at this point
+	* Note the Device is still alive at this point
 	*/
 	g_DebugController->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
 	SAFE_RELEASE(g_DebugController);
