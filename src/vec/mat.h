@@ -310,11 +310,11 @@ namespace linalg
             struct { vec4<T> col[4]; };
         };
         
-        mat4() { }
+        constexpr mat4() { }
         
-        mat4(T d) : mat4(d,d,d,d) { }
+        constexpr mat4(T d) : mat4(d,d,d,d) { }
         
-        mat4(const T& d0, const T& d1, const T& d2, const T& d3)
+        constexpr mat4(const T& d0, const T& d1, const T& d2, const T& d3)
         {
             m11 = d0;  m12 = 0.0; m13 = 0.0; m14 = 0.0;
             m21 = 0.0; m22 = d1;  m23 = 0.0; m24 = 0.0;
@@ -322,7 +322,7 @@ namespace linalg
             m41 = 0.0; m42 = 0.0; m43 = 0.0; m44 = d3;
         }
         
-        mat4(const mat3<T> &m)
+        constexpr mat4(const mat3<T> &m)
         {
             m11 = m.m11; m12 = m.m12; m13 = m.m13; m14 = 0.0;
             m21 = m.m21; m22 = m.m22; m23 = m.m23; m24 = 0.0;
@@ -333,7 +333,7 @@ namespace linalg
         /**
          * row-major per-element constructor
          */
-        mat4(const T& _m11, const T& _m12, const T& _m13, const T& _m14,
+        constexpr mat4(const T& _m11, const T& _m12, const T& _m13, const T& _m14,
              const T& _m21, const T& _m22, const T& _m23, const T& _m24,
              const T& _m31, const T& _m32, const T& _m33, const T& _m34,
              const T& _m41, const T& _m42, const T& _m43, const T& _m44)
