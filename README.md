@@ -1,4 +1,6 @@
 # eduRend
+![eduRend](EDU_2d_s.png)
+
 Main framework for graphics assignments in DA307A Computer Graphics and Modelling, Malmö University.
 
 For course work, it is recommended that you work on your own [fork](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/adding-and-cloning-repositories/cloning-and-forking-repositories-from-github-desktop) of this repo.  
