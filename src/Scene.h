@@ -92,9 +92,6 @@ class OurTestScene : public Scene
 	float camera_vel = 5.0f;	// Camera movement velocity in units/s
 	float fps_cooldown = 0;
 
-	// TOD: remove
-	Texture cube_texture;
-
 	void InitTransformationBuffer();
 
 	void UpdateTransformationBuffer(
