@@ -102,10 +102,6 @@ class OurTestScene : public Scene
 		mat4f WorldToViewMatrix,
 		mat4f ProjectionMatrix);
 
-	void UpdateUniformBuffer(
-		const vec3f& eyePos,
-		const vec3f& lightPos);
-
 public:
 	OurTestScene(
 		ID3D11Device* dxdevice,
