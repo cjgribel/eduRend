@@ -110,12 +110,10 @@ void OurTestScene::Render()
 	Mproj = camera->get_ProjectionMatrix();
 
 	// Load matrices + the Quad's transformation to the device and render it
-	//quad->MapMatrixBuffers(transformation_buffer, Mquad, Mview, Mproj);
 	UpdateTransformationBuffer(Mquad, Mview, Mproj);
 	quad->Render();
 
 	// Load matrices + Sponza's transformation to the device and render it
-	//sponza->MapMatrixBuffers(transformation_buffer, Msponza, Mview, Mproj);
 	UpdateTransformationBuffer(Msponza, Mview, Mproj);
 	sponza->Render();
 }
