@@ -3,8 +3,6 @@
 // Adapted from:
 // https://github-wiki-see.page/m/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
 //
-// CJ Gribel 2021
-//
 
 #include "Texture.h"
 
@@ -16,6 +14,36 @@ HRESULT LoadTextureFromFile(
     const char* filename,
     Texture* texture_out)
 {
+    return LoadTextureFromFile(
+        dxdevice,
+        nullptr,
+        filename,
+        texture_out);
+}
+
+HRESULT LoadTextureFromFile(
+    ID3D11Device* dxdevice,
+    ID3D11DeviceContext* dxdevice_context,
+    const char* filename,
+    Texture* texture_out)
+{
+    int mipLevels = 1;
+    int mipLevels_srv = 1;
+    unsigned bindFlags = D3D11_BIND_SHADER_RESOURCE;
+    unsigned miscFlags = 0;
+    int mostDetailedMip = 0;
+    
+    bool useMipMap = (bool)dxdevice_context;
+    // Generate mip hierarchy if a dxdevice_context is provided
+    if (useMipMap)
+    {
+        mipLevels = 0;
+        mipLevels_srv = -1;
+        bindFlags |= D3D11_BIND_RENDER_TARGET;
+        miscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+        mostDetailedMip = -1;
+    }
+
     HRESULT hr;
 
     // Load from disk into a raw RGBA buffer
@@ -33,35 +61,48 @@ HRESULT LoadTextureFromFile(
     ZeroMemory(&desc, sizeof(desc));
     desc.Width = image_width;
     desc.Height = image_height;
-    desc.MipLevels = 1;
+    desc.MipLevels = mipLevels;
     desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.BindFlags = bindFlags;
     desc.CPUAccessFlags = 0;
+    desc.MiscFlags = miscFlags;
 
     ID3D11Texture2D* pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
     subResource.pSysMem = image_data;
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
+    D3D11_SUBRESOURCE_DATA* subResourcePtr = &subResource;
+    if (useMipMap) subResourcePtr = nullptr;
     if (FAILED(hr = dxdevice->CreateTexture2D(
         &desc,
-        &subResource,
+        subResourcePtr,
         &pTexture)))
     {
         return hr;
     }
     SETNAME(pTexture, "TextureData");
 
+    if (useMipMap)
+        dxdevice_context->UpdateSubresource(
+            pTexture,
+            0,
+            0,
+            image_data,
+            subResource.SysMemPitch,
+            0);
+
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
-    srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srvDesc.Format = desc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+
     srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = mipLevels_srv;
     if (FAILED(hr = dxdevice->CreateShaderResourceView(
         pTexture,
         &srvDesc,
@@ -70,7 +111,10 @@ HRESULT LoadTextureFromFile(
         return hr;
     }
     SETNAME((texture_out->texture_SRV), "TextureSRV");
-    
+
+    if (useMipMap)
+        dxdevice_context->GenerateMips(texture_out->texture_SRV);
+
     // Cleanup
     pTexture->Release();
     stbi_image_free(image_data);

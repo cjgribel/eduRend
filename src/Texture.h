@@ -1,8 +1,7 @@
 //
-//  Texture.h
-//
-//  Oliver Öhrström
-//	CJ Gribel
+// Texture loaders
+// Adapted from:
+// https://github-wiki-see.page/m/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
 //
 
 #pragma once
@@ -26,8 +25,21 @@ struct Texture
 	operator bool() { return (bool)texture_SRV && width && height; }
 };
 
+/// <summary>
+/// Load a texture from file.
+/// </summary>
 HRESULT LoadTextureFromFile(
 	ID3D11Device* dxdevice,
+	const char* filename,
+	Texture* texture_out);
+
+/// <summary>
+/// Load a texture from file. A mip map is generated if 
+/// dxdevice_context is not null and valid.
+/// </summary>
+HRESULT LoadTextureFromFile(
+	ID3D11Device* dxdevice,
+	ID3D11DeviceContext* dxdevice_context,
 	const char* filename,
 	Texture* texture_out);
 
