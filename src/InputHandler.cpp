@@ -90,12 +90,6 @@ bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, i
 		return false;
 	}
 
-	result = keyboard->Acquire();
-	if (FAILED(result))
-	{
-		return false;
-	}
-
 	result = directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
 	if (FAILED(result))
 	{
@@ -114,11 +108,9 @@ bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, i
 		return false;
 	}
 
+	// These not being aquired is a valid result and happens if the window starts minimized.
+	result = keyboard->Acquire();
 	result = mouse->Acquire();
-	if (FAILED(result))
-	{
-		return false;
-	}
 
 	return true;
 }
