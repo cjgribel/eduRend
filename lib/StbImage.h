@@ -55,7 +55,7 @@ RECENT REVISION HISTORY:
       2.23  (2019-08-11) fix clang static analysis warning
       2.22  (2019-03-04) gif fixes, fix warnings
       2.21  (2019-02-25) fix typo in comment
-      2.20  (2019-02-07) support utf8 filenames in Windows; fix warnings and platform ifdefs
+      2.20  (2019-02-07) support utf8 fileNames in Windows; fix warnings and platform ifdefs
       2.19  (2018-02-11) fix warning
       2.18  (2018-01-30) fix warnings
       2.17  (2018-01-29) bugfix, 1-bit BMP, 16-bitness query, fix warnings
@@ -135,7 +135,7 @@ RECENT REVISION HISTORY:
 //
 // Basic usage (see HDR discussion below for HDR usage):
 //    int x,y,n;
-//    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);
+//    unsigned char *data = stbi_load(fileName, &x, &y, &n, 0);
 //    // ... process data if not NULL ...
 //    // ... x = width, y = height, n = # 8-bit components per pixel ...
 //    // ... replace '0' with '1'..'4' to force that many components per pixel
@@ -183,7 +183,7 @@ RECENT REVISION HISTORY:
 // decode the full file, you can use the stbi_info family of functions:
 //
 //   int x,y,n,ok;
-//   ok = stbi_info(filename, &x, &y, &n);
+//   ok = stbi_info(fileName, &x, &y, &n);
 //   // returns ok=1 and sets x, y, n if image is a supported format,
 //   // 0 otherwise.
 //
@@ -209,11 +209,11 @@ RECENT REVISION HISTORY:
 //
 // UNICODE:
 //
-//   If compiling for Windows and you wish to use Unicode filenames, compile
+//   If compiling for Windows and you wish to use Unicode fileNames, compile
 //   with
 //       #define STBI_WINDOWS_UTF8
-//   and pass utf8-encoded filenames. Call stbi_convert_wchar_to_utf8 to convert
-//   Windows wchar_t filenames to utf8.
+//   and pass utf8-encoded fileNames. Call stbi_convert_wchar_to_utf8 to convert
+//   Windows wchar_t fileNames to utf8.
 //
 // ===========================================================================
 //
@@ -290,7 +290,7 @@ RECENT REVISION HISTORY:
 // Additionally, there is a new, parallel interface for loading files as
 // (linear) floats to preserve the full dynamic range:
 //
-//    float *data = stbi_loadf(filename, &x, &y, &n, 0);
+//    float *data = stbi_loadf(fileName, &x, &y, &n, 0);
 //
 // If you load LDR images through this interface, those images will
 // be promoted to floating point values, run through the inverse of
@@ -299,12 +299,12 @@ RECENT REVISION HISTORY:
 //     stbi_ldr_to_hdr_scale(1.0f);
 //     stbi_ldr_to_hdr_gamma(2.2f);
 //
-// Finally, given a filename (or an open file or memory block--see header
+// Finally, given a fileName (or an open file or memory block--see header
 // file for details) containing image data, you can query for the "most
 // appropriate" interface to use (that is, whether the image is HDR or
 // not), using:
 //
-//     stbi_is_hdr(char *filename);
+//     stbi_is_hdr(char *fileName);
 //
 // ===========================================================================
 //
@@ -402,7 +402,7 @@ extern "C" {
 //
 
 //
-// load image by filename, open file, or memory buffer
+// load image by fileName, open file, or memory buffer
 //
 
 typedef struct
@@ -421,7 +421,7 @@ STBIDEF stbi_uc *stbi_load_from_memory   (stbi_uc           const *buffer, int l
 STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk  , void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
-STBIDEF stbi_uc *stbi_load            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+STBIDEF stbi_uc *stbi_load            (char const *fileName, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_uc *stbi_load_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 // for stbi_load_from_file, file pointer is left pointing immediately after image
 #endif
@@ -443,7 +443,7 @@ STBIDEF stbi_us *stbi_load_16_from_memory   (stbi_uc const *buffer, int len, int
 STBIDEF stbi_us *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
-STBIDEF stbi_us *stbi_load_16          (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+STBIDEF stbi_us *stbi_load_16          (char const *fileName, int *x, int *y, int *channels_in_file, int desired_channels);
 STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 #endif
 
@@ -456,7 +456,7 @@ STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_i
    STBIDEF float *stbi_loadf_from_callbacks  (stbi_io_callbacks const *clbk, void *user, int *x, int *y,  int *channels_in_file, int desired_channels);
 
    #ifndef STBI_NO_STDIO
-   STBIDEF float *stbi_loadf            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
+   STBIDEF float *stbi_loadf            (char const *fileName, int *x, int *y, int *channels_in_file, int desired_channels);
    STBIDEF float *stbi_loadf_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
    #endif
 #endif
@@ -475,7 +475,7 @@ STBIDEF stbi_us *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_i
 STBIDEF int    stbi_is_hdr_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 STBIDEF int    stbi_is_hdr_from_memory(stbi_uc const *buffer, int len);
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_is_hdr          (char const *filename);
+STBIDEF int      stbi_is_hdr          (char const *fileName);
 STBIDEF int      stbi_is_hdr_from_file(FILE *f);
 #endif // STBI_NO_STDIO
 
@@ -494,9 +494,9 @@ STBIDEF int      stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len);
 STBIDEF int      stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_info               (char const *filename,     int *x, int *y, int *comp);
+STBIDEF int      stbi_info               (char const *fileName,     int *x, int *y, int *comp);
 STBIDEF int      stbi_info_from_file     (FILE *f,                  int *x, int *y, int *comp);
-STBIDEF int      stbi_is_16_bit          (char const *filename);
+STBIDEF int      stbi_is_16_bit          (char const *fileName);
 STBIDEF int      stbi_is_16_bit_from_file(FILE *f);
 #endif
 
@@ -1314,13 +1314,13 @@ STBIDEF int stbi_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wch
 }
 #endif
 
-static FILE *stbi__fopen(char const *filename, char const *mode)
+static FILE *stbi__fopen(char const *fileName, char const *mode)
 {
    FILE *f;
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
    wchar_t wMode[64];
    wchar_t wFilename[1024];
-	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
+	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, fileName, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
       return 0;
 
 	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
@@ -1334,18 +1334,18 @@ static FILE *stbi__fopen(char const *filename, char const *mode)
 #endif
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
-   if (0 != fopen_s(&f, filename, mode))
+   if (0 != fopen_s(&f, fileName, mode))
       f=0;
 #else
-   f = fopen(filename, mode);
+   f = fopen(fileName, mode);
 #endif
    return f;
 }
 
 
-STBIDEF stbi_uc *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF stbi_uc *stbi_load(char const *fileName, int *x, int *y, int *comp, int req_comp)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+   FILE *f = stbi__fopen(fileName, "rb");
    unsigned char *result;
    if (!f) return stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file(f,x,y,comp,req_comp);
@@ -1379,9 +1379,9 @@ STBIDEF stbi__uint16 *stbi_load_from_file_16(FILE *f, int *x, int *y, int *comp,
    return result;
 }
 
-STBIDEF stbi_us *stbi_load_16(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF stbi_us *stbi_load_16(char const *fileName, int *x, int *y, int *comp, int req_comp)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+   FILE *f = stbi__fopen(fileName, "rb");
    stbi__uint16 *result;
    if (!f) return (stbi_us *) stbi__errpuc("can't fopen", "Unable to open file");
    result = stbi_load_from_file_16(f,x,y,comp,req_comp);
@@ -1470,10 +1470,10 @@ STBIDEF float *stbi_loadf_from_callbacks(stbi_io_callbacks const *clbk, void *us
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF float *stbi_loadf(char const *filename, int *x, int *y, int *comp, int req_comp)
+STBIDEF float *stbi_loadf(char const *fileName, int *x, int *y, int *comp, int req_comp)
 {
    float *result;
-   FILE *f = stbi__fopen(filename, "rb");
+   FILE *f = stbi__fopen(fileName, "rb");
    if (!f) return stbi__errpf("can't fopen", "Unable to open file");
    result = stbi_loadf_from_file(f,x,y,comp,req_comp);
    fclose(f);
@@ -1508,9 +1508,9 @@ STBIDEF int stbi_is_hdr_from_memory(stbi_uc const *buffer, int len)
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF int      stbi_is_hdr          (char const *filename)
+STBIDEF int      stbi_is_hdr          (char const *fileName)
 {
-   FILE *f = stbi__fopen(filename, "rb");
+   FILE *f = stbi__fopen(fileName, "rb");
    int result=0;
    if (f) {
       result = stbi_is_hdr_from_file(f);
@@ -7597,9 +7597,9 @@ static int stbi__is_16_main(stbi__context *s)
 }
 
 #ifndef STBI_NO_STDIO
-STBIDEF int stbi_info(char const *filename, int *x, int *y, int *comp)
+STBIDEF int stbi_info(char const *fileName, int *x, int *y, int *comp)
 {
-    FILE *f = stbi__fopen(filename, "rb");
+    FILE *f = stbi__fopen(fileName, "rb");
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_info_from_file(f, x, y, comp);
@@ -7618,9 +7618,9 @@ STBIDEF int stbi_info_from_file(FILE *f, int *x, int *y, int *comp)
    return r;
 }
 
-STBIDEF int stbi_is_16_bit(char const *filename)
+STBIDEF int stbi_is_16_bit(char const *fileName)
 {
-    FILE *f = stbi__fopen(filename, "rb");
+    FILE *f = stbi__fopen(fileName, "rb");
     int result;
     if (!f) return stbi__err("can't fopen", "Unable to open file");
     result = stbi_is_16_bit_from_file(f);
@@ -7672,7 +7672,7 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user
 
 /*
    revision history:
-      2.20  (2019-02-07) support utf8 filenames in Windows; fix warnings and platform ifdefs
+      2.20  (2019-02-07) support utf8 fileNames in Windows; fix warnings and platform ifdefs
       2.19  (2018-02-11) fix warning
       2.18  (2018-01-30) fix warnings
       2.17  (2018-01-29) change sbti__shiftsigned to avoid clang -O2 bug

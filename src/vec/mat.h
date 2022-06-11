@@ -11,44 +11,42 @@
 
 #include <cstdio>
 #include "math.h"
-#include "vec.h"
+#include "Vec.h"
 
 namespace linalg
 {
-    
 	//
     // 2D column-major matrix
     //
     // | m11 m12 |
     // | m21 m22 |
     // 
-    template<class T> class mat2
+
+    template<class T> class Mat2
     {
     public:
-        union {
+
+        union
+        {
             T array[4];
             T mat[2][2];
             struct { T m11, m21, m12, m22; };
-            struct { vec2<T> col[2]; };
+            struct { Vec2<T> col[2]; };
         };
         
-        mat2()
-        {
-            
-        }
+        Mat2() { }
         
         //
         // constructor: from elements
         //
-        mat2(const T& m11, const T& m12, const T& m21, const T& m22) : m11(m11), m12(m12), m21(m21), m22(m22)
-        {
-            
-        }
+        Mat2(const T& m11, const T& m12, const T& m21, const T& m22)
+            : m11(m11), m12(m12), m21(m21), m22(m22)
+        { }
         
         //
         // constructor: rotation matrix
         //
-        mat2(const T& rad)
+        Mat2(const T& rad)
         {
             T c = cos(rad);
             T s = sin(rad);
@@ -59,30 +57,30 @@ namespace linalg
         //
         // constructor: scaling matrix
         //
-        mat2(const T& scale_x, const T& scale_y)
+        Mat2(const T& scale_x, const T& scale_y)
         {
             m11 = scale_x;	m12 = 0.0;
             m21 = 0.0;		m22 = scale_y;
         }
         
-        mat2<T> invert() const
+        Mat2<T> Invert() const
         {
             T det = m11 * m22 - m12 * m21;
             
-            return mat2<T>(m22, -m21, -m12, m11) * (1.0/det);
+            return Mat2<T>(m22, -m21, -m12, m11) * (1.0/det);
         }
         
-        mat2<T> operator - ()
+        Mat2<T> operator - ()
         {
-            return mat2<T>(-m11, -m12, -m21, -m22);
+            return Mat2<T>(-m11, -m12, -m21, -m22);
         }
         
-        mat2<T> operator * (const T& s) const
+        Mat2<T> operator * (const T& s) const
         {
-            return mat2<T>(m11*s, m12*s, m21*s, m22*s);
+            return Mat2<T>(m11*s, m12*s, m21*s, m22*s);
         }
         
-        vec2<T> operator * (const vec2<T> &rhs) const;
+        Vec2<T> operator * (const Vec2<T> &rhs) const;
         
     };
     
@@ -90,24 +88,26 @@ namespace linalg
     //
     // 3D column-major matrix
     //
-    template<class T> class mat3
+    template<class T> class Mat3
     {
     public:
-        union {
+
+        union
+        {
             T array[9];
             T mat[3][3];
             struct { T m11, m21, m31, m12, m22, m32, m13, m23, m33; };
-            struct { vec3<T> col[3]; };
+            struct { Vec3<T> col[3]; };
         };
         
-        mat3() { }
+        Mat3() { }
         
 		//
 		// row-major per-element constructor
 		//
-		mat3(const T& _m11, const T& _m12, const T& _m13,
-			const T& _m21, const T& _m22, const T& _m23,
-			const T& _m31, const T& _m32, const T& _m33)
+		Mat3(const T& _m11, const T& _m12, const T& _m13,
+			 const T& _m21, const T& _m22, const T& _m23,
+			 const T& _m31, const T& _m32, const T& _m33)
 		{
 			m11 = _m11; m12 = _m12; m13 = _m13;
 			m21 = _m21; m22 = _m22; m23 = _m23;
@@ -117,12 +117,12 @@ namespace linalg
 		//
         // constructor: equal diagonal elements
         //
-        mat3(const T& d) : mat3(d,d,d) { }
+        Mat3(const T& d) : Mat3(d,d,d) { }
         
 		//
         // constructor: diagonal elements (scaling matrix)
         //
-        mat3(const T& d0, const T& d1, const T& d2)
+        Mat3(const T& d0, const T& d1, const T& d2)
         {
             m11 = d0;
             m22 = d1;
@@ -133,14 +133,14 @@ namespace linalg
         //
         // from basis vectors
         //
-        mat3(const vec3<T>& e0, const vec3<T>& e1, const vec3<T>& e2)
+        Mat3(const Vec3<T>& e0, const Vec3<T>& e1, const Vec3<T>& e2)
         {
             col[0] = e0;
             col[1] = e1;
             col[2] = e2;
         }
         
-        vec3<T> column(int i)
+        Vec3<T> Column(int i)
         {
             assert(i<3);
             return col[i];
@@ -158,9 +158,9 @@ namespace linalg
 		//
 		// notes: u should be normalized
 		//
-        static mat3<T> rotation(const T& theta, const T& x, const T& y, const T& z)
+        static Mat3<T> Rotation(const T& theta, const T& x, const T& y, const T& z)
         {
-            mat3<T> R;
+            Mat3<T> R;
             T c1 = cos(theta);
             T c2 = 1.0-c1;
             T s = sin(theta);
@@ -172,7 +172,7 @@ namespace linalg
             return R;
         }
         
-        void transpose()
+        void Transpose()
         {
             std::swap(m21, m12);
             std::swap(m31, m13);
@@ -182,67 +182,73 @@ namespace linalg
         // 
         // inverse: A^(-1) = 1/det(A) * adjugate(A)
         //
-        mat3<T> inverse() const
+        Mat3<T> Inverse() const
         {
-            T det = determinant();
+            T det = Determinant();
             assert(det > 1e-8);
             T idet = 1.0/det;
             
-            mat3<T> M;
-            M.m11 = (m22*m33 - m32*m23);
+            Mat3<T> M;
+            M.m11 =  (m22*m33 - m32*m23);
             M.m21 = -(m21*m33 - m31*m23);
-            M.m31 = (m21*m32 - m31*m22);
+            M.m31 =  (m21*m32 - m31*m22);
             
             M.m12 = -(m12*m33 - m32*m13);
-            M.m22 = (m11*m33 - m31*m13);
+            M.m22 =  (m11*m33 - m31*m13);
             M.m32 = -(m11*m32 - m31*m12);
             
-            M.m13 = (m12*m23 - m22*m13);
+            M.m13 =  (m12*m23 - m22*m13);
             M.m23 = -(m11*m23 - m21*m13);
-            M.m33 = (m11*m22 - m21*m12);
+            M.m33 =  (m11*m22 - m21*m12);
             
             return M*idet;
         }
         
-        void set(const mat3<T> &m)
+        void Set(const Mat3<T> &m)
         {
             col[0] = m.col[0];
             col[1] = m.col[1];
             col[2] = m.col[2];
         }
         
-        T determinant() const
+        T Determinant() const
         {
-            return m11*m22*m33 + m12*m23*m31 + m13*m21*m32 - m11*m23*m32 - m12*m21*m33 - m13*m22*m31;
+            return
+                m11*m22*m33 +
+                m12*m23*m31 +
+                m13*m21*m32 -
+                m11*m23*m32 -
+                m12*m21*m33 -
+                m13*m22*m31;
         }
         
 		//
         // (ugly) matrix normalization
         //
-        void normalize();
+        void Normalize();
         
-        mat3<T> operator * (const T& s) const
+        Mat3<T> operator * (const T& s) const
         {
-            return mat3<T>(m11*s, m12*s, m13*s,
+            return Mat3<T>(m11*s, m12*s, m13*s,
                            m21*s, m22*s, m23*s,
                            m31*s, m32*s, m33*s);
         }
         
-        mat3<T> operator +(const mat3<T>& m) const
+        Mat3<T> operator +(const Mat3<T>& m) const
         {
-            return mat3<T>(m11+m.m11, m12+m.m12, m13+m.m13,
+            return Mat3<T>(m11+m.m11, m12+m.m12, m13+m.m13,
                            m21+m.m21, m22+m.m22, m23+m.m23,
                            m31+m.m31, m32+m.m32, m33+m.m33);
         }
         
-        mat3<T> operator -(const mat3<T>& m) const
+        Mat3<T> operator -(const Mat3<T>& m) const
         {
-            return mat3(m11-m.m11, m12-m.m12, m13-m.m13,
+            return Mat3(m11-m.m11, m12-m.m12, m13-m.m13,
                         m21-m.m21, m22-m.m22, m23-m.m23,
                         m31-m.m31, m32-m.m32, m33-m.m33);
         }
         
-        mat3<T>& operator +=(const mat3<T>& m)
+        Mat3<T>& operator +=(const Mat3<T>& m)
         {
             col[0] += m.col[0];
             col[1] += m.col[1];
@@ -251,7 +257,7 @@ namespace linalg
             return *this;
         }
         
-        mat3<T>& operator *=(const T& s)
+        Mat3<T>& operator *=(const T& s)
         {
             col[0] *= s;
             col[1] *= s;
@@ -260,19 +266,19 @@ namespace linalg
             return *this;
         }
         
-        mat3<T> operator *(const mat3<T>& m) const
+        Mat3<T> operator *(const Mat3<T>& m) const
         {
-            return mat3<T>(m11*m.m11+m12*m.m21+m13*m.m31, m11*m.m12+m12*m.m22+m13*m.m32, m11*m.m13+m12*m.m23+m13*m.m33,
-                           m21*m.m11+m22*m.m21+m23*m.m31, m21*m.m12+m22*m.m22+m23*m.m32, m21*m.m13+m22*m.m23+m23*m.m33,
-                           m31*m.m11+m32*m.m21+m33*m.m31, m31*m.m12+m32*m.m22+m33*m.m32, m31*m.m13+m32*m.m23+m33*m.m33);
+            return Mat3<T>(m11*m.m11 + m12*m.m21 + m13*m.m31, m11*m.m12 + m12*m.m22 + m13*m.m32, m11*m.m13 + m12*m.m23 + m13*m.m33,
+                           m21*m.m11 + m22*m.m21 + m23*m.m31, m21*m.m12 + m22*m.m22 + m23*m.m32, m21*m.m13 + m22*m.m23 + m23*m.m33,
+                           m31*m.m11 + m32*m.m21 + m33*m.m31, m31*m.m12 + m32*m.m22 + m33*m.m32, m31*m.m13 + m32*m.m23 + m33*m.m33);
         }
         
-        vec3<T> operator *(const vec3<T> &v) const;
+        Vec3<T> operator *(const Vec3<T> &v) const;
         
         //
         // thread safe debug print
         //
-        void debugPrint()
+        void DebugPrint()
         {
             printf("%f %f %f\n%f %f %f\n%f %f %f\n",
                    m11, m12, m13, m21, m22, m23, m31, m32, m33);
@@ -283,7 +289,7 @@ namespace linalg
 	// thread unsafe debug print
 	//
     template<class T>
-    inline std::ostream& operator<< (std::ostream &out, const mat3<T> &m)
+    inline std::ostream& operator<< (std::ostream &out, const Mat3<T> &m)
     {
         for (int i=0; i<3; i++)
             printf("%1.4f, %1.4f, %1.4ff\n", m.mat[0][i], m.mat[1][i], m.mat[2][i]);
@@ -294,9 +300,10 @@ namespace linalg
 	//
 	// 4D column-major matrix
 	//
-    template<class T> class mat4
+    template<class T> class Mat4
     {
     public:
+
         union
         {
             T array[16];
@@ -307,14 +314,14 @@ namespace linalg
                 T m13, m23, m33, m43;
                 T m14, m24, m34, m44;
             };
-            struct { vec4<T> col[4]; };
+            struct { Vec4<T> col[4]; };
         };
         
-        constexpr mat4() : mat4(0) { }
+        constexpr Mat4() : Mat4(0) { }
 
-        constexpr mat4(T d) : mat4(d, d, d, d) { }
+        constexpr Mat4(T d) : Mat4(d, d, d, d) { }
 
-        constexpr mat4(const T& d0, const T& d1, const T& d2, const T& d3)
+        constexpr Mat4(const T& d0, const T& d1, const T& d2, const T& d3)
         {
             m11 = d0;  m12 = 0.0; m13 = 0.0; m14 = 0.0;
             m21 = 0.0; m22 = d1;  m23 = 0.0; m24 = 0.0;
@@ -322,7 +329,7 @@ namespace linalg
             m41 = 0.0; m42 = 0.0; m43 = 0.0; m44 = d3;
         }
 
-        constexpr mat4(const mat3<T>& m)
+        constexpr Mat4(const Mat3<T>& m)
         {
             m11 = m.m11; m12 = m.m12; m13 = m.m13; m14 = 0.0;
             m21 = m.m21; m22 = m.m22; m23 = m.m23; m24 = 0.0;
@@ -333,7 +340,7 @@ namespace linalg
         /**
          * row-major per-element constructor
          */
-        constexpr mat4(const T& _m11, const T& _m12, const T& _m13, const T& _m14,
+        constexpr Mat4(const T& _m11, const T& _m12, const T& _m13, const T& _m14,
             const T& _m21, const T& _m22, const T& _m23, const T& _m24,
             const T& _m31, const T& _m32, const T& _m33, const T& _m34,
             const T& _m41, const T& _m42, const T& _m43, const T& _m44)
@@ -347,12 +354,12 @@ namespace linalg
 		//
 		// get the upper-left submatrix
 		//
-        mat3<T> get_3x3() const
+        Mat3<T> Get_3x3() const
         {
-            return mat3<T>(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+            return Mat3<T>(m11, m12, m13, m21, m22, m23, m31, m32, m33);
         }
         
-        void transpose()
+        void Transpose()
         {
             std::swap(m21, m12);
             std::swap(m31, m13);
@@ -362,13 +369,13 @@ namespace linalg
             std::swap(m43, m34);
         }
         
-        mat4<T> inverse() const
+        Mat4<T> Inverse() const
         {
-            T det = determinant();
+            T det = Determinant();
             assert(abs(det) > 1e-8);
             T idet = 1.0/det;
             
-            mat4<T> M = mat4<T>(m23 * m34 * m42 - m24 * m33 * m42 + m24 * m32 * m43 - m22 * m34 * m43 - m23 * m32 * m44 + m22 * m33 * m44,
+            Mat4<T> M = Mat4<T>(m23 * m34 * m42 - m24 * m33 * m42 + m24 * m32 * m43 - m22 * m34 * m43 - m23 * m32 * m44 + m22 * m33 * m44,
                                 m14 * m33 * m42 - m13 * m34 * m42 - m14 * m32 * m43 + m12 * m34 * m43 + m13 * m32 * m44 - m12 * m33 * m44,
                                 m13 * m24 * m42 - m14 * m23 * m42 + m14 * m22 * m43 - m12 * m24 * m43 - m13 * m22 * m44 + m12 * m23 * m44,
                                 m14 * m23 * m32 - m13 * m24 * m32 - m14 * m22 * m33 + m12 * m24 * m33 + m13 * m22 * m34 - m12 * m23 * m34,
@@ -388,7 +395,7 @@ namespace linalg
             return M*idet;
         }
         
-        T determinant() const
+        T Determinant() const
         {
             return
             m14 * m23 * m32 * m41 - m13 * m24 * m32 * m41 - m14 * m22 * m33 * m41 + m12 * m24 * m33 * m41 +
@@ -399,7 +406,7 @@ namespace linalg
             m13 * m21 * m32 * m44 - m11 * m23 * m32 * m44 - m12 * m21 * m33 * m44 + m11 * m22 * m33 * m44;
         }
         
-        void set(const mat4<T> &m)
+        void Set(const Mat4<T> &m)
         {
             col[0] = m.col[0];
             col[1] = m.col[1];
@@ -407,7 +414,7 @@ namespace linalg
             col[3] = m.col[3];
         }
         
-        vec4<T> column(int i)
+        Vec4<T> Column(int i)
         {
             assert(i<4);
             return col[i];
@@ -423,15 +430,15 @@ namespace linalg
             return array[i];
         }
         
-        mat4<T> operator *(const T& s) const
+        Mat4<T> operator *(const T& s) const
         {
-            return mat4<T>(m11*s, m12*s, m13*s, m14*s,
+            return Mat4<T>(m11*s, m12*s, m13*s, m14*s,
                            m21*s, m22*s, m23*s, m24*s,
                            m31*s, m32*s, m33*s, m34*s,
                            m41*s, m42*s, m43*s, m44*s);
         }
         
-        mat4<T>& operator *=(const T& s)
+        Mat4<T>& operator *=(const T& s)
         {
             col[0] *= s;
             col[1] *= s;
@@ -441,9 +448,9 @@ namespace linalg
             return *this;
         }
         
-        mat4<T> operator + (const mat4<T>& m) const
+        Mat4<T> operator + (const Mat4<T>& m) const
         {
-            mat4<T> n = *this;
+            Mat4<T> n = *this;
             n.col[0] += m.col[0];
             n.col[1] += m.col[1];
             n.col[2] += m.col[2];
@@ -452,9 +459,9 @@ namespace linalg
             return n;
         }
         
-        mat4<T> operator *(const mat4<T>& m) const
+        Mat4<T> operator *(const Mat4<T>& m) const
         {
-            return mat4<T>(m11 * m.m11 + m12 * m.m21 + m13 * m.m31 + m14 * m.m41,
+            return Mat4<T>(m11 * m.m11 + m12 * m.m21 + m13 * m.m31 + m14 * m.m41,
                            m11 * m.m12 + m12 * m.m22 + m13 * m.m32 + m14 * m.m42,
                            m11 * m.m13 + m12 * m.m23 + m13 * m.m33 + m14 * m.m43,
                            m11 * m.m14 + m12 * m.m24 + m13 * m.m34 + m14 * m.m44,
@@ -475,16 +482,16 @@ namespace linalg
                            m41 * m.m14 + m42 * m.m24 + m43 * m.m34 + m44 * m.m44);
         }
         
-        vec4<T> operator *(const vec4<T> &v) const;
+        Vec4<T> operator *(const Vec4<T> &v) const;
         
-        static mat4<T> translation(const vec3<T>& p)
+        static Mat4<T> Translation(const Vec3<T>& p)
         {
-            return translation(p.x, p.y, p.z);
+            return Translation(p.x, p.y, p.z);
         }
         
-        static mat4<T> translation(const T& x, const T& y, const T& z)
+        static Mat4<T> Translation(const T& x, const T& y, const T& z)
         {
-            mat4<T> M;
+            Mat4<T> M;
             M.m11 = 1.0; M.m12 = 0.0; M.m13 = 0; M.m14 = x;
             M.m21 = 0.0; M.m22 = 1.0; M.m23 = 0; M.m24 = y;
             M.m31 = 0.0; M.m32 = 0.0; M.m33 = 1; M.m34 = z;
@@ -493,24 +500,24 @@ namespace linalg
             return M;
         }
         
-        static mat4<T> scaling(const T& s)
+        static Mat4<T> Scaling(const T& s)
         {
-            return scaling({s,s,s});
+            return Scaling({s,s,s});
         }
         
-        static mat4<T> scaling(float sx, float sy, float sz)
+        static Mat4<T> Scaling(float sx, float sy, float sz)
         {
-            return mat4<T>(sx, sy, sz, 1.0);
+            return Mat4<T>(sx, sy, sz, 1.0);
         }
         
-        static mat4<T> scaling(const vec3<T> &sv)
+        static Mat4<T> Scaling(const Vec3<T> &sv)
         {
-            return mat4<T>(sv.x, sv.y, sv.z, 1.0);
+            return Mat4<T>(sv.x, sv.y, sv.z, 1.0);
         }
         
-        static mat4<T> rotation(const T& theta, const vec3<T> &v)
+        static Mat4<T> Rotation(const T& theta, const Vec3<T> &v)
         {
-            return rotation(theta, v.x, v.y, v.z);
+            return Rotation(theta, v.x, v.y, v.z);
         }
         
         //
@@ -525,9 +532,9 @@ namespace linalg
         //
         // notes: u should be normalized
         //
-        static mat4<T> rotation(const T& theta, const T& x, const T& y, const T& z)
+        static Mat4<T> Rotation(const T& theta, const T& x, const T& y, const T& z)
         {
-            mat4<T> M;
+            Mat4<T> M;
             T c1 = cos(theta);
             T c2 = (T)(1.0-c1);
             T s = sin(theta);
@@ -549,7 +556,7 @@ namespace linalg
 		// http://planning.cs.uiuc.edu/node102.html
 		// Note: uses notation yaw (z), roll (x), pitch (y)
 		//
-		static mat4<T> rotation(const T& roll, const T& yaw, const T& pitch)
+		static Mat4<T> Rotation(const T& roll, const T& yaw, const T& pitch)
 		{
 			const T sina = sin(roll);
 			const T cosa = cos(roll);
@@ -558,23 +565,23 @@ namespace linalg
 			const T sing = sin(pitch);
 			const T cosg = cos(pitch);
 
-			return mat4<T>(	cosa*cosb, cosa*sinb*sing - sina*cosg, cosa*sinb*cosg - sina*sing, 0,
+			return Mat4<T>(	cosa*cosb, cosa*sinb*sing - sina*cosg, cosa*sinb*cosg - sina*sing, 0,
 							sina*cosb, sina*sinb*sing + cosa*cosg, sina*sinb*cosg - cosa*sing, 0,
 							-sinb, cosb*sing, cosb*cosg, 0,
 							0, 0, 0, 1);
 		}
         
-        static mat4<T> TRS(vec3<T> vt, float theta, vec3<T> rotv, vec3<T> sv)
+        static Mat4<T> TRS(Vec3<T> vt, float theta, Vec3<T> rotv, Vec3<T> sv)
         {
-            return translation(vt) * rotation(theta, rotv) * scaling(sv);
+            return Translation(vt) * rotation(theta, rotv) * scaling(sv);
         }
         
-        static mat4<T> viewport_matrix(const T& w, const T& h)
+        static Mat4<T> ViewportMatrix(const T& w, const T& h)
         {
-            return mat4f(w*0.5f,0.0f,   0.0f, w*0.5f,
-                         0.0f,  h*0.5f, 0.0f, h*0.5f,
-                         0.0f,  0.0f,   0.5f, 0.5f,
-                         0.0f,  0.0f,   0.0f, 1.0f);
+            return mat4f(w*0.5f,    0.0f, 0.0f, w*0.5f,
+                           0.0f,  h*0.5f, 0.0f, h*0.5f,
+                           0.0f,    0.0f, 0.5f,   0.5f,
+                           0.0f,    0.0f, 0.0f,   1.0f);
         }
 
         //
@@ -582,14 +589,14 @@ namespace linalg
         // 
         // frustum planes not necessarily symmetric in the y=0 and x=0 planes of the view frame
         //
-        static mat4<T> GL_asymmetric_projection(const T& l, const T& r, const T& b, const T& t, const T& n, const T& f)
+        static Mat4<T> GL_AsymmetricProjection(const T& l, const T& r, const T& b, const T& t, const T& n, const T& f)
         {
             T n2 = 2.0f*n;
             T rl = r - l;
             T tb = t - b;
             T fn = f - n;
             
-            return mat4<T>(n2/rl,   0.0f,   (r+l)/rl,   0.0f,
+            return Mat4<T>(n2/rl,   0.0f,   (r+l)/rl,   0.0f,
                            0.0f,    n2/tb,  (t+b)/tb,   0.0f,
                            0.0f,    0.0f,   (-f- n)/fn, (-n2*f)/fn,
                            0.0f,    0.0f,   -1.0f,      0.0f);
@@ -600,12 +607,12 @@ namespace linalg
         // 
         // frustum planes are symmetric in the y=0 and x=0 planes of the view frame
         //
-        static mat4<T> GL_symmetric_projection(const T& r, const T& t, const T& n, const T& f)
+        static Mat4<T> GL_SymmetricProjection(const T& r, const T& t, const T& n, const T& f)
         {
             T n2 = 2.0f*n;
             T fn = f - n;
 
-            return mat4<T>(n/r,   0.0f, 0.0f,       0.0f,
+            return Mat4<T>(n/r,   0.0f, 0.0f,       0.0f,
                            0.0f,  n/t,  0.0f,       0.0f,
                            0.0f,  0.0f, (-f- n)/fn, (-n2*f)/fn,
                            0.0f,  0.0f, -1.0f,      0.0f);
@@ -614,24 +621,24 @@ namespace linalg
         //
         // GL view projection matrix [18]
         //
-        static mat4<T> projection(const T& vfov, const T& aspectr, const T& n, const T& f)
+        static Mat4<T> Projection(const T& vfov, const T& aspectr, const T& n, const T& f)
         {
             T t = n * tanf(vfov/2.0f);
 			T r = t * aspectr;
 
-            return GL_symmetric_projection(r, t, n, f);
+            return GL_SymmetricProjection(r, t, n, f);
         }
         
         //
         // thread safe debug print
         //
-        void debugPrint()
+        void DebugPrint()
         {
             printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
                    m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44);
         }
 
-		static void debugPrint(const mat4<T>& m)
+		static void DebugPrint(const Mat4<T>& m)
 		{
 			printf("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
 				m.m11, m.m12, m.m13, m.m14, m.m21, m.m22, m.m23, m.m24, m.m31, m.m32, m.m33, m.m34, m.m41, m.m42, m.m43, m.m44);
@@ -643,7 +650,7 @@ namespace linalg
 	// thread unsafe debug print
 	//
     template<class T>
-    inline std::ostream& operator<< (std::ostream &out, const mat4<T> &m)
+    inline std::ostream& operator<< (std::ostream &out, const Mat4<T> &m)
     {
         for (int i=0; i<4; i++)
             printf("%f, %f, %f, %f\n", m.mat[0][i], m.mat[1][i], m.mat[2][i], m.mat[3][i]);
@@ -652,26 +659,26 @@ namespace linalg
     }
 
     template<class T>
-    inline mat4<T> transpose(const mat4<T>& m)
+    inline Mat4<T> Transpose(const Mat4<T>& m)
     {
-		mat4<T> n = m;
-		n.transpose();
+		Mat4<T> n = m;
+		n.Transpose();
 		return n;
     }
     
-    typedef mat2<float> mat2f;
-    typedef mat3<float> mat3f;
-    typedef mat4<float> mat4f;
+    typedef Mat2<float> Mat2f;
+    typedef Mat3<float> Mat3f;
+    typedef Mat4<float> Mat4f;
     
     //
     // compile-time instances
     //
-    const mat2f mat2f_zero = mat2f(0.0f);
-    const mat3f mat3f_zero = mat3f(0.0f);
-    const mat4f mat4f_zero = mat4f(0.0f);
-    const mat2f mat2f_identity = mat2f(1.0f);
-    const mat3f mat3f_identity = mat3f(1.0f);
-    const mat4f mat4f_identity = mat4f(1.0f);
+    const Mat2f mat2f_zero = Mat2f(0.0f);
+    const Mat3f mat3f_zero = Mat3f(0.0f);
+    const Mat4f mat4f_zero = Mat4f(0.0f);
+    const Mat2f mat2f_identity = Mat2f(1.0f);
+    const Mat3f mat3f_identity = Mat3f(1.0f);
+    const Mat4f mat4f_identity = Mat4f(1.0f);
 }
 
 #endif /* MAT_H */

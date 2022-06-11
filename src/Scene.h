@@ -15,36 +15,33 @@
 
 // TEMP
 
-
 class Scene
 {
 protected:
-	ID3D11Device*			dxdevice;
-	ID3D11DeviceContext*	dxdevice_context;
-	int						window_width;
-	int						window_height;
+
+	ID3D11Device*			dxDevice;
+	ID3D11DeviceContext*	dxDeviceContext;
+	int						windowWidth;
+	int						windowHeight;
 
 public:
 
 	Scene(
-		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context,
-		int window_width,
-		int window_height);
+		ID3D11Device* dxDevice,
+		ID3D11DeviceContext* dxDeviceContext,
+		int windowWidth,
+		int windowHeight);
 
 	virtual void Init() = 0;
 
-	virtual void Update(
-		float dt,
-		InputHandler* input_handler) = 0;
+	virtual void Update(float deltaTime, InputHandler* inputHandler) = 0;
 	
 	virtual void Render() = 0;
 	
 	virtual void Release() = 0;
 
-	virtual void WindowResize(
-		int window_width,
-		int window_height);
+	virtual void ResizeWindow(int width, int height);
+
 };
 
 class OurTestScene : public Scene
@@ -54,71 +51,59 @@ class OurTestScene : public Scene
 	//
 
 	// CBuffer for transformation matrices
-	ID3D11Buffer* transformation_buffer = nullptr;
+	ID3D11Buffer* transformationBuffer = nullptr;
 	// + other CBuffers
-
-	// 
-	// CBuffer client-side definitions
-	// These must match the corresponding shader definitions 
-	//
-
-	struct TransformationBuffer
-	{
-		mat4f ModelToWorldMatrix;
-		mat4f WorldToViewMatrix;
-		mat4f ProjectionMatrix;
-	};
 
 	//
 	// Scene content
 	//
+
 	Camera* camera;
+	
+	Mat4f worldToViewMatrix;
+	Mat4f projectionMatrix;
+
+	// Game objects and their model-to-world transformation matrices
 
 	QuadModel* quad;
+	Mat4f mtwQuad;
+
 	OBJModel* sponza;
+	Mat4f mtwSponza;
 
-	// Model-to-world transformation matrices
-	mat4f Msponza;
-	mat4f Mquad;
-
-	// World-to-view matrix
-	mat4f Mview;
-	// Projection matrix
-	mat4f Mproj;
-
+	//
 	// Misc
-	float angle = 0;			// A per-frame updated rotation angle (radians)...
-	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
-	float camera_vel = 5.0f;	// Camera movement velocity in units/s
-	float fps_cooldown = 0;
+	//
+
+	float angle = 0;			     // A per-frame updated rotation angle (radians)...
+	float angularVelocity = fPI / 2; // ...and its velocity (radians/sec)
+	float fpsCooldown = 0;
 
 	void InitTransformationBuffer();
 
 	void UpdateTransformationBuffer(
-		mat4f ModelToWorldMatrix,
-		mat4f WorldToViewMatrix,
-		mat4f ProjectionMatrix);
+		Mat4f modelToWorldMatrix,
+		Mat4f worldToViewMatrix,
+		Mat4f projectionMatrix);
 
 public:
+
 	OurTestScene(
-		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context,
-		int window_width,
-		int window_height);
+		ID3D11Device* dxDevice,
+		ID3D11DeviceContext* dxDeviceContext,
+		int windowWidth,
+		int windowHeight);
 
 	void Init() override;
 
-	void Update(
-		float dt,
-		InputHandler* input_handler) override;
+	void Update(float dt, InputHandler* inputHandler) override;
 
 	void Render() override;
 
 	void Release() override;
 
-	void WindowResize(
-		int window_width,
-		int window_height) override;
+	void ResizeWindow(int width, int height) override;
+
 };
 
 #endif

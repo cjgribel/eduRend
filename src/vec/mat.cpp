@@ -5,47 +5,47 @@
 //  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
 //
 
-#include "mat.h"
-#include "vec.h"
+#include "Mat.h"
+#include "Vec.h"
 
 namespace linalg
 {
     template <class T>
-    vec2<T> mat2<T>::operator*(const vec2<T>& rhs) const
+    Vec2<T> Mat2<T>::operator*(const Vec2<T>& rhs) const
     {
-        return vec2<T>(m11*rhs.x + m12*rhs.y, m21*rhs.x + m22*rhs.y);
+        return Vec2<T>(m11*rhs.x + m12*rhs.y, m21*rhs.x + m22*rhs.y);
     }
     // explicit template specialisation for <float>
-    template vec2<float> mat2<float>::operator*(const vec2<float>& rhs) const;
+    template Vec2<float> Mat2<float>::operator*(const Vec2<float>& rhs) const;
     
     template <class T>
-    void mat3<T>::normalize()
+    void Mat3<T>::Normalize()
     {
-        vec3<T> r2 = vec3<T>(m12, m22, m23), r3 = vec3<T>(m13, m23, m33);
-        r3.normalize();
-        vec3<T> r1 = r2 % r3;
-        r1.normalize();
+        Vec3<T> r2 = Vec3<T>(m12, m22, m23), r3 = Vec3<T>(m13, m23, m33);
+        r3.Normalize();
+        Vec3<T> r1 = r2 % r3;
+        r1.Normalize();
         r2 = r3 % r1;
         m11 = r1.x; m12 = r2.x; m13 = r3.x;
         m21 = r1.y; m22 = r2.y; m23 = r3.y;
         m31 = r1.z; m32 = r2.z; m33 = r3.z;
     }
     // explicit template specialisation for <float>
-    template void mat3<float>::normalize();
+    template void Mat3<float>::Normalize();
     
     template <class T>
-    vec3<T> mat3<T>::operator*(const vec3<T> &v) const
+    Vec3<T> Mat3<T>::operator*(const Vec3<T> &v) const
     {
         return col[0]*v.x + col[1]*v.y + col[2]*v.z;
     }
     // explicit template specialisation for <float>
-    template vec3<float> mat3<float>::operator*(const vec3<float> &v) const;
+    template Vec3<float> Mat3<float>::operator*(const Vec3<float> &v) const;
     
     template <class T>
-    vec4<T> mat4<T>::operator *(const vec4<T> &v) const
+    Vec4<T> Mat4<T>::operator *(const Vec4<T> &v) const
     {
         return col[0]*v.x + col[1]*v.y + col[2]*v.z + col[3]*v.w;
     }
     // explicit template specialisation for <float>
-    template vec4<float> mat4<float>::operator *(const vec4<float> &v) const;
+    template Vec4<float> Mat4<float>::operator *(const Vec4<float> &v) const;
 }

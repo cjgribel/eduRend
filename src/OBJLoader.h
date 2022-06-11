@@ -33,17 +33,17 @@ class OBJLoader
 {
     void LoadMaterials(
         std::string dir,
-        std::string filename,
-        MaterialHash& mtl_hash);
+        std::string fileName,
+        MaterialHash& materialHash);
 public:
 
     void Load(
-        const std::string& filename,
-        bool auto_generate_normals = true,
+        const std::string& fileName,
+        bool autoGenerateNormals = true,
         bool triangulate = true);
 
-    bool has_normals = false;
-    bool has_texcoords = false;
+    bool hasNormals = false;
+    bool hasTexcoords = false;
 
     std::vector<Vertex> vertices;
     std::vector<Drawcall> drawcalls;

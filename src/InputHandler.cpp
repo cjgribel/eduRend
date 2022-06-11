@@ -8,105 +8,91 @@
 
 #include "InputHandler.h"
 
-bool InputHandler::ReadKeyboard(){
-	HRESULT result;
+bool InputHandler::ReadKeyboard()
+{
+	HRESULT result = keyboard->GetDeviceState(sizeof(keyboardState), (LPVOID)&keyboardState);
 
-	result = keyboard->GetDeviceState(sizeof(keyboardState), (LPVOID)&keyboardState);
 	if (FAILED(result))
 	{
-		if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
-		{
+		if (result == DIERR_INPUTLOST || result == DIERR_NOTACQUIRED)
 			keyboard->Acquire();
-		}
 		else
-		{
 			return false;
-		}
 	}
 
 	return true;
 }
 
-bool InputHandler::ReadMouse(){
+bool InputHandler::ReadMouse()
+{
 	HRESULT result;
 	prevMouseState = mouseState;
 	result = mouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&mouseState);
+
 	if (FAILED(result))
 	{
-		if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
-		{
+		if (result == DIERR_INPUTLOST || result == DIERR_NOTACQUIRED)
 			mouse->Acquire();
-		}
 		else
-		{
 			return false;
-		}
 	}
 
 	return true;
 }
 
-void InputHandler::ProcessInput(){
+void InputHandler::ProcessInput()
+{
 	mouseX += mouseState.lX;
 	mouseY += mouseState.lY;
 }
 
-InputHandler::InputHandler(){
+InputHandler::InputHandler()
+{
 	mouse = nullptr;
 	keyboard = nullptr;
 	directInput = nullptr;
 }
 
-InputHandler::~InputHandler(){
+InputHandler::~InputHandler()
+{
 
 }
 
-bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, int screenHeight){
+bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, int screenHeight)
+{
 	this->screenHeight = screenHeight;
 	this->screenWidth = screenWidth;
 	mouseX = 0;
 	mouseY = 0;
 	HRESULT result;
+	
 	result = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
-	if (FAILED(result)){
+	if (FAILED(result))
 		return false;
-	}
 
 	result = directInput->CreateDevice(GUID_SysKeyboard, &keyboard, NULL);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	result = keyboard->SetDataFormat(&c_dfDIKeyboard);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	result = keyboard->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_EXCLUSIVE);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	result = directInput->CreateDevice(GUID_SysMouse, &mouse, NULL);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	result = mouse->SetDataFormat(&c_dfDIMouse);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	result = mouse->SetCooperativeLevel(hWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
 	if (FAILED(result))
-	{
 		return false;
-	}
 
 	// These not being aquired is a valid result and happens if the window starts minimized.
 	result = keyboard->Acquire();
@@ -115,7 +101,8 @@ bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, i
 	return true;
 }
 
-void InputHandler::Shutdown(){
+void InputHandler::Shutdown()
+{
 	if (mouse)
 	{
 		mouse->Unacquire();
@@ -139,42 +126,39 @@ void InputHandler::Shutdown(){
 	return;
 }
 
-bool InputHandler::Update(){
+bool InputHandler::Update()
+{
 	bool result;
 
 	result = ReadKeyboard();
 	if (!result)
-	{
 		return false;
-	}
 
 	result = ReadMouse();
 	if (!result)
-	{
 		return false;
-	}
 
 	ProcessInput();
-
 	return true;
 }
 
-void InputHandler::GetMouseLocation(int& mouseX, int& mouseY){
+void InputHandler::GetMouseLocation(int& mouseX, int& mouseY)
+{
 	mouseX = this->mouseX;
 	mouseY = this->mouseY;
 }
 
-bool InputHandler::IsKeyPressed(Keys key){
-	if (keyboardState[key] & 0x80){
-		return true;
-	}
-	return false;
+bool InputHandler::IsKeyPressed(Keys key)
+{
+	return keyboardState[key] & 0x80;
 }
 
-LONG InputHandler::GetMouseDeltaX(){
+LONG InputHandler::GetMouseDeltaX()
+{
 	return mouseState.lX;
 }
 
-LONG InputHandler::GetMouseDeltaY(){
+LONG InputHandler::GetMouseDeltaY()
+{
 	return mouseState.lY;
 }

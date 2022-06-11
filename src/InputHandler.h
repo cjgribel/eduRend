@@ -9,7 +9,8 @@
 #pragma once
 #include "stdafx.h"
 
-enum Keys {
+enum Keys
+{
 	Left = DIK_LEFT,
 	Right = DIK_RIGHT,
 	Up = DIK_UP,
@@ -20,11 +21,14 @@ enum Keys {
 	D = DIK_D
 };
 
-class InputHandler {
+class InputHandler 
+{
 private:
+
 	IDirectInput8* directInput;
 	IDirectInputDevice8* keyboard;
 	IDirectInputDevice8* mouse;
+
 	unsigned char keyboardState[256];
 	DIMOUSESTATE mouseState, prevMouseState;
 	int screenWidth, screenHeight;
@@ -35,8 +39,10 @@ private:
 	void ProcessInput();
 
 public:
+
 	InputHandler();
 	~InputHandler();
+
 	bool Initialize(HINSTANCE, HWND, int, int);
 	void Shutdown();
 	bool Update();

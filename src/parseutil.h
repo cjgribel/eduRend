@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-inline std::string& rtrim(std::string& str)
+inline std::string& rightTrim(std::string& str)
 {
     str.erase(str.find_last_not_of(" \n\r\t")+1);
     return str;
@@ -26,10 +26,10 @@ inline std::string& ltrim(std::string& str)
 
 inline std::string& lrtrim(std::string& str)
 {
-    return ltrim(rtrim(str));
+    return ltrim(rightTrim(str));
 }
 
-static std::string get_parentdir(std::string path)
+static std::string getParentDir(std::string path)
 {
     std::string parent;
     size_t pos = path.rfind("/");
@@ -43,10 +43,10 @@ static std::string get_parentdir(std::string path)
 //
 // find and extract first occurance of *.[suffix] in a string
 //
-static bool find_filename_from_suffix(const std::string &str, const std::string &suffix, std::string& res)
+static bool findFileNameFromSuffix(const std::string &str, const std::string &suffix, std::string& res)
 {
-    std::string dotsuffix = std::string(".")+suffix;
-    size_t end = str.find(dotsuffix);
+    std::string dotSuffix = std::string(".")+suffix;
+    size_t end = str.find(dotSuffix);
 
     if (end == std::string::npos)
         return false;
@@ -58,17 +58,17 @@ static bool find_filename_from_suffix(const std::string &str, const std::string 
     if (start == std::string::npos)
         start = -1;
     
-    res = str.substr(start+1, end-start-1 + dotsuffix.length());
+    res = str.substr(start+1, end-start-1 + dotSuffix.length());
     return true;
 }
 
 //
 // find and extract first occurance of *.[{suffix-list}] in a string
 //
-static bool find_filename_from_suffixes(const std::string &str, const std::vector<std::string>& suffixes, std::string& res)
+static bool findFileNameFromSuffixes(const std::string &str, const std::vector<std::string>& suffixes, std::string& res)
 {
 	for (auto& suffix : suffixes)
-		if (find_filename_from_suffix(str, suffix, res))
+		if (findFileNameFromSuffix(str, suffix, res))
 			return true;
 	return false;
 }

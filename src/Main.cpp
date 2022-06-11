@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #include "shader.h"
 #include "Window.h"
-#include "ShaderBuffers.h"
 #include "InputHandler.h"
 #include "Camera.h"
 #include "Model.h"
@@ -28,6 +27,7 @@
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
+
 IDXGISwapChain*         g_SwapChain				= nullptr;
 ID3D11RenderTargetView* g_RenderTargetView		= nullptr;
 ID3D11Texture2D*        g_DepthStencil			= nullptr;
@@ -36,8 +36,8 @@ ID3D11Device*			g_Device				= nullptr;
 ID3D11DeviceContext*	g_DeviceContext			= nullptr;
 ID3D11RasterizerState*	g_RasterState			= nullptr;
 
-shader_data*			g_VertexShader			= nullptr;
-shader_data*			g_PixelShader			= nullptr;
+ShaderData*			g_VertexShader			= nullptr;
+ShaderData*			g_PixelShader			= nullptr;
 InputHandler*			g_InputHandler			= nullptr;
 
 #ifdef _DEBUG
@@ -52,6 +52,7 @@ std::unique_ptr<Scene> scene;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
+
 HRESULT				Render(float deltaTime);
 HRESULT				Update(float deltaTime);
 HRESULT				InitDirect3DAndSwapChain(int width, int height);
@@ -67,6 +68,7 @@ void				WinResize();
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
+
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
 	// Load console and redirect some I/O to it
@@ -97,7 +99,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 
 	HRESULT hr = S_OK;
 
-	if(SUCCEEDED(hr = InitDirect3DAndSwapChain(g_InitialWinWidth, g_InitialWinHeight)))
+	if (SUCCEEDED(hr = InitDirect3DAndSwapChain(g_InitialWinWidth, g_InitialWinHeight)))
 	{
 		InitRasterizerState();
 
@@ -116,8 +118,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 
-			if (FAILED(create_shader(g_Device,  "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || 
-				FAILED(create_shader(g_Device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
+			if (FAILED(CreateShader(g_Device,  "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || 
+				FAILED(CreateShader(g_Device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
 			{
 				__debugbreak();
 			}
@@ -173,7 +175,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 // they need to be handled here as well.
 void WinResize()
 {
-	const linalg::vec2i size = g_Window->GetSize();
+	const linalg::Vec2i size = g_Window->GetSize();
 
 	printf("window resized to %i x %i\n", size.x, size.y);
 
@@ -227,7 +229,7 @@ void WinResize()
 	vp.TopLeftY = 0;
 	g_DeviceContext->RSSetViewports(1, &vp);
 
-	scene->WindowResize(size.x, size.y);
+	scene->ResizeWindow(size.x, size.y);
 }
 
 //--------------------------------------------------------------------------------------
@@ -390,8 +392,8 @@ HRESULT Render(float deltaTime)
 	g_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		
 	// Bind shaders
-	bind_shader(g_Device, g_DeviceContext, g_VertexShader);
-	bind_shader(g_Device, g_DeviceContext, g_PixelShader);
+	BindShader(g_Device, g_DeviceContext, g_VertexShader);
+	BindShader(g_Device, g_DeviceContext, g_PixelShader);
 	//g_DeviceContext->VSSetShader(g_VertexShader, nullptr, 0);
 	g_DeviceContext->HSSetShader(nullptr, nullptr, 0);
 	g_DeviceContext->DSSetShader(nullptr, nullptr, 0);
@@ -417,8 +419,8 @@ void Release()
 
 	SAFE_DELETE(g_InputHandler);
 
-	delete_shader(g_VertexShader);
-	delete_shader(g_PixelShader);
+	DeleteShader(g_VertexShader);
+	DeleteShader(g_PixelShader);
 
 	SAFE_RELEASE(g_SwapChain);
 	SAFE_RELEASE(g_RenderTargetView);

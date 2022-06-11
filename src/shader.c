@@ -12,24 +12,28 @@
 #include <Windows.h>
 #include <d3dCompiler.h>
 
-typedef struct shader_data
+typedef struct ShaderData
 {
 	SHADER_TYPE type;
+
 	union
 	{
 		struct
 		{
-			ID3D11VertexShader* vetex_shader;
-			ID3D11InputLayout* input_layout;
+			ID3D11VertexShader* vertexShader;
+			ID3D11InputLayout* inputLayout;
 		};
-		ID3D11PixelShader* pixel_shader;
-	};
-	const SCHAR* file_path;
-	const char* entrypoint;
-	FILETIME last_write;
-} shader_data;
 
-static BOOL load_file(const SCHAR* pPath, char** pData, DWORD* pSize, FILETIME* pLastWrite)
+		ID3D11PixelShader* pixelShader;
+	};
+
+	const SCHAR* filePath;
+	const char* entrypoint;
+	FILETIME lastWrite;
+
+} ShaderData;
+
+static BOOL LoadFile(const SCHAR* pPath, char** pData, DWORD* pSize, FILETIME* pLastWrite)
 {
 	BOOL result = { 0 };
 	FILETIME lastWrite = { 0 };
@@ -72,7 +76,7 @@ error:
 	return FALSE;
 }
 
-static ID3DBlob* compile_shader(SHADER_TYPE type, const char* pCode, uint32_t codeSize, const char* pEntrypoint)
+static ID3DBlob* CompileShader(SHADER_TYPE type, const char* pCode, uint32_t codeSize, const char* pEntrypoint)
 {
 	ID3DBlob* shader;
 	ID3DBlob* error;
@@ -93,19 +97,19 @@ static ID3DBlob* compile_shader(SHADER_TYPE type, const char* pCode, uint32_t co
 	return shader;
 }
 
-static inline BOOL create_pixel_Shader(ID3D11Device* pDevice, ID3DBlob* pCode, ID3D11PixelShader** pShader)
+static inline BOOL CreatePixelShader(ID3D11Device* pDevice, ID3DBlob* pCode, ID3D11PixelShader** pShader)
 {
 	HRESULT hr = pDevice->lpVtbl->CreatePixelShader(pDevice, pCode->lpVtbl->GetBufferPointer(pCode), pCode->lpVtbl->GetBufferSize(pCode), NULL, pShader);
 	return FAILED(hr) ? FALSE : TRUE;
 }
 
-static inline BOOL create_vertex_Shader(ID3D11Device* pDevice, ID3DBlob* pCode, ID3D11VertexShader** pShader)
+static inline BOOL CreateVertexShader(ID3D11Device* pDevice, ID3DBlob* pCode, ID3D11VertexShader** pShader)
 {
 	HRESULT hr = pDevice->lpVtbl->CreateVertexShader(pDevice, pCode->lpVtbl->GetBufferPointer(pCode), pCode->lpVtbl->GetBufferSize(pCode), NULL, pShader);
 	return FAILED(hr) ? FALSE : TRUE;
 }
 
-SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader)
+SHADER_RESULT CreateShader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, ShaderData** pShader)
 {
 	SHADER_RESULT result = { 0 };
 	FILETIME lastWrite = { 0 };
@@ -118,7 +122,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 		goto error;
 	}
 
-	BOOL fileStatus = load_file(pPath, &codeBuffer, &fileSize, &lastWrite);
+	BOOL fileStatus = LoadFile(pPath, &codeBuffer, &fileSize, &lastWrite);
 
 	if (!fileStatus)
 	{
@@ -126,7 +130,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 		goto error;
 	}
 
-	ID3DBlob* shaderByteCode = compile_shader(type, codeBuffer, fileSize, pEntrypoint);
+	ID3DBlob* shaderByteCode = CompileShader(type, codeBuffer, fileSize, pEntrypoint);
 
 	free(codeBuffer);
 
@@ -136,38 +140,38 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 		goto error;
 	}
 
-	size_t structureSize = sizeof(shader_data);
+	size_t structureSize = sizeof(ShaderData);
 	size_t pathSize = strlen(pPath) * sizeof(SCHAR) + 1;
 	size_t entrypointSize = strlen(pEntrypoint) + 1;
 	size_t totalSize = structureSize + pathSize + entrypointSize;
 
-	shader_data* data = (shader_data*)malloc(totalSize);
+	ShaderData* data = (ShaderData*)malloc(totalSize);
 	if (data == NULL)
 	{
 		result = SR_OUT_OF_MEMORY;
 		goto error;
 	}
 
-	data->file_path = ((SCHAR*)data) + structureSize;
-	data->entrypoint = data->file_path + pathSize;
+	data->filePath = ((SCHAR*)data) + structureSize;
+	data->entrypoint = data->filePath + pathSize;
 
-	memcpy((char*)data->file_path, pPath, pathSize);
+	memcpy((char*)data->filePath, pPath, pathSize);
 	memcpy((char*)data->entrypoint, pEntrypoint, entrypointSize);
 
 	data->type = type;
-	data->last_write = lastWrite;
+	data->lastWrite = lastWrite;
 
 	switch (type)
 	{
 	case SHADER_VERTEX:
 	{
-		HRESULT hr = pDevice->lpVtbl->CreateInputLayout(pDevice, pLayout, (UINT)layoutcount, shaderByteCode->lpVtbl->GetBufferPointer(shaderByteCode), shaderByteCode->lpVtbl->GetBufferSize(shaderByteCode), &data->input_layout);
+		HRESULT hr = pDevice->lpVtbl->CreateInputLayout(pDevice, pLayout, (UINT)layoutcount, shaderByteCode->lpVtbl->GetBufferPointer(shaderByteCode), shaderByteCode->lpVtbl->GetBufferSize(shaderByteCode), &data->inputLayout);
 		if (FAILED(hr))
 		{
 			result = SR_INVALID_INPUT_LAYOUT;
 			goto error;
 		}
-		BOOL res = create_vertex_Shader(pDevice, shaderByteCode, &data->vetex_shader);
+		BOOL res = CreateVertexShader(pDevice, shaderByteCode, &data->vertexShader);
 		if (!res)
 		{
 			result = SR_SHADER_LINKING_ERROR;
@@ -177,7 +181,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 	break;
 	case SHADER_PIXEL:
 	{
-		BOOL res = create_pixel_Shader(pDevice, shaderByteCode, &data->pixel_shader);
+		BOOL res = CreatePixelShader(pDevice, shaderByteCode, &data->pixelShader);
 		if (!res)
 		{
 			result = SR_SHADER_LINKING_ERROR;
@@ -195,7 +199,7 @@ error:
 	case SR_SHADER_LINKING_ERROR:
 	{
 		if (type == SHADER_VERTEX)
-			data->input_layout->lpVtbl->Release(data->input_layout);
+			data->inputLayout->lpVtbl->Release(data->inputLayout);
 	}
 	case SR_INVALID_INPUT_LAYOUT:
 	{
@@ -209,7 +213,7 @@ error:
 	return result;
 }
 
-void delete_shader(shader_data* pShader)
+void DeleteShader(ShaderData* pShader)
 {
 	if (pShader == NULL)
 		return;
@@ -217,39 +221,39 @@ void delete_shader(shader_data* pShader)
 	{
 	case SHADER_VERTEX:
 	{
-		pShader->vetex_shader->lpVtbl->Release(pShader->vetex_shader);
-		pShader->input_layout->lpVtbl->Release(pShader->input_layout);
+		pShader->vertexShader->lpVtbl->Release(pShader->vertexShader);
+		pShader->inputLayout->lpVtbl->Release(pShader->inputLayout);
 	}
 	break;
 	case SHADER_PIXEL:
 	{
-		pShader->pixel_shader->lpVtbl->Release(pShader->pixel_shader);
+		pShader->pixelShader->lpVtbl->Release(pShader->pixelShader);
 	}
 	break;
 	}
 	free(pShader);
 }
 
-void bind_shader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, shader_data* pShader)
+void BindShader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, ShaderData* pShader)
 {
 	if (pShader == NULL || pShader->type == SHADER_INVALID)
 		return;
 
 	if (pDevice)
 	{
-		FILETIME file_write = { 0 };
-		BOOL result = load_file(pShader->file_path, NULL, NULL, &file_write);
-		if (result && CompareFileTime(&file_write, &pShader->last_write) > 0)
+		FILETIME fileWrite = { 0 };
+		BOOL result = LoadFile(pShader->filePath, NULL, NULL, &fileWrite);
+		if (result && CompareFileTime(&fileWrite, &pShader->lastWrite) > 0)
 		{
-			pShader->last_write = file_write;
+			pShader->lastWrite = fileWrite;
 			char* codeBuffer = NULL;
 			uint32_t fileSize = 0;
-			result = load_file(pShader->file_path, &codeBuffer, &fileSize, NULL);
+			result = LoadFile(pShader->filePath, &codeBuffer, &fileSize, NULL);
 			if (result)
 			{
 				if (fileSize > 0)
 				{
-					ID3DBlob* shaderByteCode = compile_shader(pShader->type, codeBuffer, fileSize, pShader->entrypoint);
+					ID3DBlob* shaderByteCode = CompileShader(pShader->type, codeBuffer, fileSize, pShader->entrypoint);
 
 					if (shaderByteCode != NULL)
 					{
@@ -258,20 +262,20 @@ void bind_shader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, sha
 						case SHADER_VERTEX:
 						{
 							ID3D11VertexShader* vs;
-							if (create_vertex_Shader(pDevice, shaderByteCode, &vs))
+							if (CreateVertexShader(pDevice, shaderByteCode, &vs))
 							{
-								pShader->vetex_shader->lpVtbl->Release(pShader->vetex_shader);
-								pShader->vetex_shader = vs;
+								pShader->vertexShader->lpVtbl->Release(pShader->vertexShader);
+								pShader->vertexShader = vs;
 							}
 						}
 						break;
 						case SHADER_PIXEL:
 						{
 							ID3D11PixelShader* ps;
-							if (create_pixel_Shader(pDevice, shaderByteCode, &ps))
+							if (CreatePixelShader(pDevice, shaderByteCode, &ps))
 							{
-								pShader->pixel_shader->lpVtbl->Release(pShader->pixel_shader);
-								pShader->pixel_shader = ps;
+								pShader->pixelShader->lpVtbl->Release(pShader->pixelShader);
+								pShader->pixelShader = ps;
 							}
 						}
 						break;
@@ -290,11 +294,11 @@ void bind_shader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, sha
 		switch (pShader->type)
 		{
 		case SHADER_VERTEX:
-			pDeviceContext->lpVtbl->IASetInputLayout(pDeviceContext, pShader->input_layout);
-			pDeviceContext->lpVtbl->VSSetShader(pDeviceContext, pShader->vetex_shader, 0, 0);
+			pDeviceContext->lpVtbl->IASetInputLayout(pDeviceContext, pShader->inputLayout);
+			pDeviceContext->lpVtbl->VSSetShader(pDeviceContext, pShader->vertexShader, 0, 0);
 			break;
 		case SHADER_PIXEL:
-			pDeviceContext->lpVtbl->PSSetShader(pDeviceContext, pShader->pixel_shader, 0, 0);
+			pDeviceContext->lpVtbl->PSSetShader(pDeviceContext, pShader->pixelShader, 0, 0);
 			break;
 		}
 	}

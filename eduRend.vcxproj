@@ -141,22 +141,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="lib\stb_image.h" />
+    <ClInclude Include="lib\StbImage.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Drawcall.h" />
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\InputHandler.h" />
     <ClInclude Include="src\Keycodes.h" />
     <ClInclude Include="src\OBJLoader.h" />
-    <ClInclude Include="src\parseutil.h" />
+    <ClInclude Include="src\Parseutil.h" />
     <ClInclude Include="src\Scene.h" />
-    <ClInclude Include="src\shader.h" />
-    <ClInclude Include="src\ShaderBuffers.h" />
+    <ClInclude Include="src\Shader.h" />
+    <ClInclude Include="src\Buffers.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="src\Texture.h" />
-    <ClInclude Include="src\vec\mat.h" />
-    <ClInclude Include="src\vec\math.h" />
-    <ClInclude Include="src\vec\vec.h" />
+    <ClInclude Include="src\vec\Mat.h" />
+    <ClInclude Include="src\vec\Math.h" />
+    <ClInclude Include="src\vec\Vec.h" />
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -165,10 +165,10 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\OBJLoader.cpp" />
     <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\shader.c" />
+    <ClCompile Include="src\Shader.c" />
     <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\vec\mat.cpp" />
-    <ClCompile Include="src\vec\vec.cpp" />
+    <ClCompile Include="src\vec\Mat.cpp" />
+    <ClCompile Include="src\vec\Vec.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
