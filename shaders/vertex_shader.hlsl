@@ -6,7 +6,7 @@ cbuffer TransformationBuffer : register(b0)
 	matrix ProjectionMatrix;
 };
 
-struct VSIn
+struct VS_input
 {
 	float3 Pos : POSITION;
 	float3 Normal : NORMAL;
@@ -15,9 +15,9 @@ struct VSIn
 	float2 TexCoord : TEX;
 };
 
-struct PSIn
+struct PS_input
 {
-	float4 Pos  : SV_Position;
+	float4 Pos : SV_Position;
 	float3 Normal : NORMAL;
 	float2 TexCoord : TEX;
 };
@@ -26,9 +26,9 @@ struct PSIn
 // Vertex Shader
 //-----------------------------------------------------------------------------------------
 
-PSIn VS_main(VSIn input)
+PS_input VS_main(VS_input input)
 {
-	PSIn output = (PSIn)0;
+    PS_input output = (PS_input) 0;
 	
 	// Model->View transformation
 	matrix MV = mul(WorldToViewMatrix, ModelToWorldMatrix);

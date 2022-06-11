@@ -19,33 +19,36 @@ struct Texture
 {
 	int width = 0;
 	int height = 0;
-	ID3D11ShaderResourceView* texture_SRV = nullptr;
+	ID3D11ShaderResourceView* shaderResourceView = nullptr;
 
 	// Allow cast to bool ("invariant") to see if this is a valid texture
-	operator bool() { return (bool)texture_SRV && width && height; }
+	operator bool()
+	{
+		return (bool)shaderResourceView && width && height;
+	}
 };
 
 /// <summary>
 /// Load a texture from file.
 /// </summary>
 HRESULT LoadTextureFromFile(
-	ID3D11Device* dxdevice,
-	const char* filename,
-	Texture* texture_out);
+	ID3D11Device* dxDevice,
+	const char* fileName,
+	Texture* textureOut);
 
 /// <summary>
 /// Load a texture from file. A mip map is generated if 
-/// dxdevice_context is not null and valid.
+/// dxDeviceContext is not null and valid.
 /// </summary>
 HRESULT LoadTextureFromFile(
-	ID3D11Device* dxdevice,
-	ID3D11DeviceContext* dxdevice_context,
-	const char* filename,
-	Texture* texture_out);
+	ID3D11Device* dxDevice,
+	ID3D11DeviceContext* dxDeviceContext,
+	const char* fileName,
+	Texture* textureOut);
 
 HRESULT LoadCubeTextureFromFile(
-	ID3D11Device* dxdevice,
-	const char** filenames,
-	Texture* texture_out);
+	ID3D11Device* dxDevice,
+	const char** fileNames,
+	Texture* textureOut);
 
 #endif

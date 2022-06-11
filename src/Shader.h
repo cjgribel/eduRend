@@ -31,7 +31,7 @@ extern "C" {
 	///
 	/// Opaque data structure containing the shader data.
 	///
-	typedef struct shader_data shader_data;
+	typedef struct ShaderData ShaderData;
 
 	typedef enum SHADER_TYPE
 	{
@@ -63,7 +63,7 @@ extern "C" {
 	/// @param pShader Pointer to the resulting shader_data.
 	/// @return Code describing the result of the creation, returns SR_OK on success.
 	/// 
-	SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, shader_data** pShader);
+	SHADER_RESULT CreateShader(ID3D11Device* pDevice, const SCHAR* pPath, const char* pEntrypoint, SHADER_TYPE type, const D3D11_INPUT_ELEMENT_DESC* pLayout, uint32_t layoutcount, ShaderData** pShader);
 	
 	///
 	/// Deletes a shader created using create_shader.
@@ -71,7 +71,7 @@ extern "C" {
 	/// @see create_shader()
 	/// @param pShader Pointer to the shader that should be deleted.
 	/// 
-	void delete_shader(shader_data* pShader);
+	void DeleteShader(ShaderData* pShader);
 
 	/// 
 	/// Bind a shader to the DX11 pipeline.
@@ -81,7 +81,7 @@ extern "C" {
 	/// @param pDeviceContext Pointer to the DX11 context that the shaders should be bound using, if NULL the shader binding will be skipped.
 	/// @param pShader Pointer to the shader that should be bound.
 	/// 
-	void bind_shader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, shader_data* pShader);
+	void BindShader(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext, ShaderData* pShader);
 
 #ifdef __cplusplus
 }
