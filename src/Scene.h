@@ -1,3 +1,7 @@
+/**
+ * @file Scene.h
+ * @brief Contains scene related classes
+*/
 
 #pragma once
 #ifndef SCENE_H
@@ -9,44 +13,67 @@
 #include "Model.h"
 #include "Texture.h"
 
-// New files
-// Material
-// Texture <- stb
-
-// TEMP
-
-
+/**
+ * @brief Abstract class defining scene rendering and updating.
+*/
 class Scene
 {
-protected:
-	ID3D11Device*			dxdevice;
-	ID3D11DeviceContext*	dxdevice_context;
-	int						window_width;
-	int						window_height;
-
 public:
-
+	/**
+	 * @brief Setup for member variables, no initialization is done here.
+	 * @note These params are saved in the scene so they must be valid for as long as the scene is.
+	 * @param[in] dxdevice ID3D11Device that will be used in the scene.
+	 * @param[in] dxdevice_context ID3D11DeviceContext that will be used in the scene.
+	 * @param[in] window_width Window hight for the scene.
+	 * @param[in] window_height Window width for the scene.
+	*/
 	Scene(
 		ID3D11Device* dxdevice,
 		ID3D11DeviceContext* dxdevice_context,
 		int window_width,
 		int window_height);
 
+	/**
+	 * @brief Initialize all scene data.
+	*/
 	virtual void Init() = 0;
 
-	virtual void Update(
-		float dt,
-		InputHandler* input_handler) = 0;
-	
-	virtual void Render() = 0;
-	
+	/**
+	 * @brief Relese all scene data created in Init()
+	*/
 	virtual void Release() = 0;
 
-	virtual void WindowResize(
-		int window_width,
-		int window_height);
+	/**
+	 * @brief Update any relevant scene data.
+	 * @param[in] dt Seconds since the last call.
+	 * @param[in] input_handler Reference to the current InputHandler.
+	*/
+	virtual void Update(float dt, InputHandler* input_handler) = 0;
+	
+	/**
+	 * @brief Render the scene.
+	*/
+	virtual void Render() = 0;
+	
+
+	/**
+	 * @brief Method called whenever the Window has changed size.
+	 * @param[in] window_width New window width.
+	 * @param[in] window_height New window height.
+	*/
+	virtual void WindowResize(int window_width,	int window_height);
+
+protected:
+	ID3D11Device* dxdevice;
+	ID3D11DeviceContext* dxdevice_context;
+	int						window_width;
+	int						window_height;
+
 };
 
+/**
+ * @brief Test scene used in the project.
+*/
 class OurTestScene : public Scene
 {
 	//
@@ -106,19 +133,34 @@ public:
 		int window_width,
 		int window_height);
 
+	/**
+	 * @brief Initializes all resources held by the scene.
+	*/
 	void Init() override;
 
-	void Update(
-		float dt,
-		InputHandler* input_handler) override;
+	/**
+	 * @brief Updates all ojects in the scene
+	 * @param dt Time in seconds since last iteration
+	 * @param input_handler Current InputHandler
+	*/
+	void Update(float dt, InputHandler* input_handler) override;
 
+	/**
+	 * @brief Renders all objects in the scene
+	*/
 	void Render() override;
 
+	/**
+	 * @brief Releases all resources created by the scene.
+	*/
 	void Release() override;
 
-	void WindowResize(
-		int window_width,
-		int window_height) override;
+	/**
+	 * @brief Updates all scene data that relates to Window size
+	 * @param window_width New width
+	 * @param window_height New height
+	*/
+	void WindowResize(int window_width,	int window_height) override;
 };
 
 #endif

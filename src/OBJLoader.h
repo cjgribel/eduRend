@@ -1,9 +1,8 @@
-
-//
-//  OBJ/MTL loader
-//
-//  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file OBJLoader.h
+ * @brief OBJ/MTL loader
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
@@ -12,23 +11,23 @@
 #include <string>
 #include "Drawcall.h"
 
-// Make sure loaded normals face in the same direction
-// as the triangle's CCW normal
+//! Make sure loaded normals face in the same direction as the triangle's CCW normal
 #define MESH_FORCE_CCW
-// Sort drawcalls based on material - usually a good idea
+
+//! Sort drawcalls based on material - usually a good idea
 #define MESH_SORT_DRAWCALLS
 
-// Accepted image formats
-// Note: this is a short list, more formats may be accepted -
-// see https://github.com/nothings/stb/blob/master/stb_image.h
+/** 
+ * @brief Accepted image formats
+ * @note This is a short list, more formats may be accepted -
+ * @see https://github.com/nothings/stb/blob/master/stb_image.h
+*/
 #define ALLOWED_TEXTURE_SUFFIXES { "bmp", "jpg", "png", "tga", "gif" }
 
-//
-// OBJ Loader
-//
-// Parses OBJ/MTL-files and organizes the data in arrays 
-// with vertices, drawcalls and materials
-//
+/**
+ * @brief OBJ Loader
+ * @details Parses OBJ/MTL-files and organizes the data in arrays with vertices, drawcalls and materials
+*/
 class OBJLoader
 {
     void LoadMaterials(
@@ -36,18 +35,23 @@ class OBJLoader
         std::string filename,
         MaterialHash& mtl_hash);
 public:
-
+    /**
+     * @brief Loads a .obj file and any linked .mtl file
+     * @param filename Path to the file
+     * @param auto_generate_normals Should nomals be automatically generated if they are not contained in the file
+     * @param triangulate Should quads be triangulated
+    */
     void Load(
         const std::string& filename,
         bool auto_generate_normals = true,
         bool triangulate = true);
 
-    bool has_normals = false;
-    bool has_texcoords = false;
+    bool has_normals = false; //!< Does the model contain normals.
+    bool has_texcoords = false; //!< Does the model contain uv-coordinates
 
-    std::vector<Vertex> vertices;
-    std::vector<Drawcall> drawcalls;
-    std::vector<Material> materials;
+    std::vector<Vertex> vertices; //!< Vector of Vertex data
+    std::vector<Drawcall> drawcalls; //!< Vector of Drawcall data
+    std::vector<Material> materials; //!< Vector of Material data
 };
 
 #endif

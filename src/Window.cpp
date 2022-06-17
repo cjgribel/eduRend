@@ -12,7 +12,6 @@ Window* Window::s_instance = nullptr;
 bool Window::Update() noexcept
 {
 	m_sizeChanged = false;
-	//m_PreviousMousePos = m_mousePos;
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
@@ -54,16 +53,6 @@ bool Window::SizeChanged() const noexcept
 	return m_sizeChanged;
 }
 
-//bool Window::KeyDown(Keys key) const noexcept
-//{
-//	return m_keys[static_cast<int>(key)];
-//}
-//
-//bool Window::KeyUp(Keys key) const noexcept
-//{
-//	return !m_keys[static_cast<int>(key)];
-//}
-
 Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_windowHandle(nullptr), m_width(width), m_height(height), m_sizeChanged(false)
 {
 	// Static instance to handle window callbacks
@@ -94,7 +83,7 @@ Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_wind
 	RECT rc = { 0, 0, (LONG)m_width, (LONG)m_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
-	if (!(m_windowHandle = CreateWindow(
+	m_windowHandle = CreateWindow(
 		L"DA307A_eduRend",
 		L"DA307A - eduRend",
 		WS_OVERLAPPEDWINDOW,
@@ -105,12 +94,13 @@ Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_wind
 		nullptr,
 		nullptr,
 		instance,
-		nullptr)))
+		nullptr);
+
+	if (!m_windowHandle)
 	{
 		throw std::exception("Window creation failed");
 	}
 
-	m_keys.reset();
 	s_instance = this;
 
 	ShowWindow(m_windowHandle, nCmdShow);
@@ -118,7 +108,7 @@ Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_wind
 
 Window::~Window() noexcept
 {
-	ReleaseCapture();
+	DestroyWindow(m_windowHandle);
 	s_instance = nullptr;
 }
 
@@ -128,13 +118,6 @@ LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	{
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		break;
-
-	case WM_KEYDOWN:
-		m_keys.set(wParam);
-		break;
-	case WM_KEYUP:
-		m_keys.reset(wParam);
 		break;
 
 	case WM_SIZE:

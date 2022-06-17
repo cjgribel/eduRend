@@ -1,9 +1,8 @@
-
-//
-// 2x2, 3x3 & 4x4 Matrix lib
-//
-// Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file mat.h
+ * @brief 2x2, 3x3 & 4x4 Matrix lib
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef MAT_H

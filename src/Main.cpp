@@ -19,7 +19,6 @@
 #include "stdafx.h"
 #include "shader.h"
 #include "Window.h"
-#include "ShaderBuffers.h"
 #include "InputHandler.h"
 #include "Camera.h"
 #include "Model.h"
@@ -67,7 +66,7 @@ void				WinResize();
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
-int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int nCmdShow)
 {
 	// Load console and redirect some I/O to it
 	// Note: this has to be done before the win32 window is initialized, otherwise DirectInput dies
@@ -378,6 +377,9 @@ HRESULT Update(float deltaTime)
 
 HRESULT Render(float deltaTime)
 {
+	// Get rid of unreferenced warning
+	deltaTime = deltaTime;
+
 	// Clear color in RGBA
 	static float ClearColor[4] = { 0, 0, 0, 1 };
 	// Clear back buffer

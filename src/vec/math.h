@@ -1,9 +1,8 @@
-
-//
-//	math.h
-//
-//  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file math.h
+ * @brief Contains mathmatical functions
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef MATH_H

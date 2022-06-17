@@ -1,9 +1,8 @@
-
-//
-//  Model.h
-//
-//  Carl Johan Gribel 2016, cjgribel@gmail.com
-//
+/**
+ * @file Model.h
+ * @brief Contains model definitions
+ * @author Carl Johan Gribel 2016, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef MODEL_H
@@ -13,13 +12,15 @@
 #include <vector>
 #include "vec\vec.h"
 #include "vec\mat.h"
-#include "ShaderBuffers.h"
 #include "Drawcall.h"
 #include "OBJLoader.h"
 #include "Texture.h"
 
 using namespace linalg;
 
+/**
+ * @brief Abstract class. Defines the Render method and contains mesh data needed for a model.
+*/
 class Model
 {
 protected:
@@ -33,6 +34,11 @@ protected:
 
 public:
 
+	/**
+	 * @brief Sets the protected member variables to the input params.
+	 * @param dxdevice ID3D11Device to be used in the model.
+	 * @param dxdevice_context ID3D11DeviceContext to be used in the model.
+	*/
 	Model(
 		ID3D11Device* dxdevice, 
 		ID3D11DeviceContext* dxdevice_context) 
@@ -40,14 +46,15 @@ public:
 			dxdevice_context(dxdevice_context)
 	{ }
 
-	//
-	// Abstract render method: must be implemented by derived classes
-	//
+	/**
+	 * @brief Abstract render method: must be implemented by derived classes
+	*/
 	virtual void Render() const = 0;
 
-	//
-	// Destructor
-	//
+	/**
+	 * @brief Destructor.
+	 * @details Releases the vertex and index buffers of the Model.
+	*/
 	virtual ~Model()
 	{ 
 		SAFE_RELEASE(vertex_buffer);
@@ -55,12 +62,14 @@ public:
 	}
 };
 
+/**
+ * @brief Model reprsenting a Quad.
+*/
 class QuadModel : public Model
 {
 	unsigned nbr_indices = 0;
 
 public:
-
 	QuadModel(
 		ID3D11Device* dx3ddevice,
 		ID3D11DeviceContext* dx3ddevice_context);
@@ -70,6 +79,10 @@ public:
 	~QuadModel() { }
 };
 
+/**
+ * @brief Model representing a 3D object.
+ * @see OBJLoader
+*/
 class OBJModel : public Model
 {
 	// index ranges, representing drawcalls, within an index array

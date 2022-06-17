@@ -1,9 +1,8 @@
-
-//
-//	2D, 3D & 4D Vector lib
-//
-//  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file vec.h
+ * @brief 2D, 3D & 4D Vector lib
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef VEC_H
@@ -15,10 +14,12 @@
 
 namespace linalg
 {
-    //
-    // 2D vector
-    //
-    template<class T> class vec2
+    /**
+     * @brief 2D vector
+     * @tparam T Number representation to use
+    */
+    template<class T> 
+    class vec2
     {
     public:
         union
@@ -27,17 +28,11 @@ namespace linalg
             struct { T x, y; };
         };
         
-        vec2()
-        {
-            x = 0.0f;
-            y = 0.0f;
-        }
+        constexpr vec2() : vec2(0.0f) {}
+
+        constexpr vec2(const T &value) : vec2(value, value) {}
         
-        vec2(const T& x, const T& y)
-        {
-            this->x = x;
-            this->y = y;
-        }
+        constexpr vec2(const T& x, const T& y) : x(x), y(y) {}
         
         void set(const T &x, const T &y)
         {
@@ -65,8 +60,10 @@ namespace linalg
         {
             T normSquared = x*x + y*y;
             
-            if( normSquared < 1e-8 )
+            if (normSquared < 1e-8)
+            {
                 set(0.0, 0.0);
+            }
             else
             {
                 T inormSquared = 1.0 / sqrt(normSquared);
@@ -195,19 +192,11 @@ namespace linalg
             struct { T x, y, z; };
         };
         
-        vec3()
-        {
-            x = 0.0;
-            y = 0.0;
-            z = 0.0;
-        }
+        constexpr vec3() : vec3(0.0f) {}
         
-        vec3(const T &x, const T &y, const T &z)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-        }
+        constexpr vec3(const T& value) : vec3(value, value, value) {}
+
+        constexpr vec3(const T &x, const T &y, const T &z) : x(x), y(y), z(z) {}
         
         vec4<T> xyz0() const;
         
@@ -384,28 +373,16 @@ namespace linalg
             struct { T x, y, z, w; };
         };
         
-        vec4()
-        {
-            x = y = z = w = 0;
-        }
+        constexpr vec4() : vec4(0.0f) {}
         
-        vec4(const T &x, const T &y, const T &z, const T &w)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-            this->w = w;
-        }
+        constexpr vec4(const T& value) : vec4(value, value, value, value) {}
+
+        constexpr vec4(const T &x, const T &y, const T &z, const T &w) : x(x), y(y), z(z), w(w) {}
         
-        vec4(const vec3<T> &v, const T &w)
-        {
-            this->x = v.x;
-            this->y = v.y;
-            this->z = v.z;
-            this->w = w;
-        }
+        constexpr vec4(const vec3<T>& v, const T& w) : vec4(v.x, v.y, v.z, w) {}
         
-        void set(const T &x, const T &y, const T &z, const T &w){
+        void set(const T &x, const T &y, const T &z, const T &w)
+        {
             this->x = x;
             this->y = y;
             this->z = z;

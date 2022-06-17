@@ -13,11 +13,11 @@ Scene::Scene(
 { }
 
 void Scene::WindowResize(
-	int window_width,
-	int window_height)
+	int pwindow_width,
+	int pwindow_height)
 {
-	this->window_width = window_width;
-	this->window_height = window_height;
+	this->window_width = pwindow_width;
+	this->window_height = pwindow_height;
 }
 
 OurTestScene::OurTestScene(
@@ -43,7 +43,7 @@ void OurTestScene::Init()
 		500.0f);				// z-far plane (everything further will be clipped/removed)
 
 	// Move camera to (0,0,5)
-	camera->moveTo({ 0, 0, 5 });
+	camera->MoveTo({ 0, 0, 5 });
 
 	// Create objects
 	quad = new QuadModel(dxdevice, dxdevice_context);
@@ -60,13 +60,13 @@ void OurTestScene::Update(
 {
 	// Basic camera control
 	if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
-		camera->move({ 0.0f, 0.0f, -camera_vel * dt });
+		camera->Move({ 0.0f, 0.0f, -camera_vel * dt });
 	if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
-		camera->move({ 0.0f, 0.0f, camera_vel * dt });
+		camera->Move({ 0.0f, 0.0f, camera_vel * dt });
 	if (input_handler->IsKeyPressed(Keys::Right) || input_handler->IsKeyPressed(Keys::D))
-		camera->move({ camera_vel * dt, 0.0f, 0.0f });
+		camera->Move({ camera_vel * dt, 0.0f, 0.0f });
 	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
-		camera->move({ -camera_vel * dt, 0.0f, 0.0f });
+		camera->Move({ -camera_vel * dt, 0.0f, 0.0f });
 
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
@@ -106,8 +106,8 @@ void OurTestScene::Render()
 	dxdevice_context->VSSetConstantBuffers(0, 1, &transformation_buffer);
 
 	// Obtain the matrices needed for rendering from the camera
-	Mview = camera->get_WorldToViewMatrix();
-	Mproj = camera->get_ProjectionMatrix();
+	Mview = camera->WorldToViewMatrix();
+	Mproj = camera->ProjectionMatrix();
 
 	// Load matrices + the Quad's transformation to the device and render it
 	UpdateTransformationBuffer(Mquad, Mview, Mproj);
@@ -129,13 +129,13 @@ void OurTestScene::Release()
 }
 
 void OurTestScene::WindowResize(
-	int window_width,
-	int window_height)
+	int new_width,
+	int new_height)
 {
 	if (camera)
-		camera->aspect = float(window_width) / window_height;
+		camera->SetAspect(float(new_width) / new_height);
 
-	Scene::WindowResize(window_width, window_height);
+	Scene::WindowResize(new_width, new_height);
 }
 
 void OurTestScene::InitTransformationBuffer()
