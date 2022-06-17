@@ -1,5 +1,7 @@
 
 #include "Scene.h"
+#include "QuadModel.h"
+#include "OBJModel.h"
 
 Scene::Scene(
 	ID3D11Device* dxdevice,
@@ -13,11 +15,11 @@ Scene::Scene(
 { }
 
 void Scene::WindowResize(
-	int pwindow_width,
-	int pwindow_height)
+	int new_width,
+	int new_height)
 {
-	this->window_width = pwindow_width;
-	this->window_height = pwindow_height;
+	window_width = new_width;
+	window_height = new_height;
 }
 
 OurTestScene::OurTestScene(
@@ -56,16 +58,16 @@ void OurTestScene::Init()
 //
 void OurTestScene::Update(
 	float dt,
-	InputHandler* input_handler)
+	const InputHandler& input_handler)
 {
 	// Basic camera control
-	if (input_handler->IsKeyPressed(Keys::Up) || input_handler->IsKeyPressed(Keys::W))
+	if (input_handler.IsKeyPressed(Keys::Up) || input_handler.IsKeyPressed(Keys::W))
 		camera->Move({ 0.0f, 0.0f, -camera_vel * dt });
-	if (input_handler->IsKeyPressed(Keys::Down) || input_handler->IsKeyPressed(Keys::S))
+	if (input_handler.IsKeyPressed(Keys::Down) || input_handler.IsKeyPressed(Keys::S))
 		camera->Move({ 0.0f, 0.0f, camera_vel * dt });
-	if (input_handler->IsKeyPressed(Keys::Right) || input_handler->IsKeyPressed(Keys::D))
+	if (input_handler.IsKeyPressed(Keys::Right) || input_handler.IsKeyPressed(Keys::D))
 		camera->Move({ camera_vel * dt, 0.0f, 0.0f });
-	if (input_handler->IsKeyPressed(Keys::Left) || input_handler->IsKeyPressed(Keys::A))
+	if (input_handler.IsKeyPressed(Keys::Left) || input_handler.IsKeyPressed(Keys::A))
 		camera->Move({ -camera_vel * dt, 0.0f, 0.0f });
 
 	// Now set/update object transformations

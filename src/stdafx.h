@@ -15,7 +15,7 @@
 #define SAFE_DELETE_ARRAY(x) if( x ) { delete[](x); (x) = nullptr; }
 constexpr auto PI = (3.14159265358979323846f);
 
-#define ASSERT(x) if(FAILED(x)) { throw std::runtime_error("ASSERT failed\n"); }
+#define ASSERT(x) if(FAILED(x)) { __debugbreak(); }
 
 #ifdef _DEBUG
 #define SETNAME(object, name) object->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(name) - 1, name)

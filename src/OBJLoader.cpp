@@ -85,9 +85,10 @@ void OBJLoader::LoadMaterials(
     std::cout << "Opened " << fullpath << "\n";
     
     std::string line;
+	line.reserve(1024);
     Material *current_mtl = NULL;
     
-    while (getline(in, line, '\n'))
+    while (std::getline(in, line, '\n'))
     {
 		const int MaxChars = 1024;
 		char str0[MaxChars] = { 0 }; // , str1[MaxChars];
@@ -173,23 +174,153 @@ void OBJLoader::Load(
 	unwelded_drawcall_t* current_drawcall = &default_drawcall;
 	int last_ofs = 0; bool face_section = false; // info for skin weight mapping
 
-	std::string line;
-	while (getline(in, line))
+	char readBuffer[256]{};
+
+	while (in.getline(readBuffer, 256, '\n'))
 	{
 		const int MaxChars = 1024;
 		float x, y, z;
 		int a[3], b[3], c[3], d[3];
 		char str[MaxChars];
 
+		if (readBuffer[0] == ' ')
+		{
+			continue;
+		}
+
+		// Vertex data
+		//
+		if (readBuffer[0] == 'v')
+		{
+			// normal
+			//
+			if (readBuffer[1] == 'n' && sscanf_s(readBuffer, "vn %f %f %f", &x, &y, &z) == 3)
+			{
+				file_normals.push_back(vec3f(x, y, z));
+			}
+			else if (readBuffer[1] == 't')
+			{
+				// 3D texel (not supported: ignore last component)
+				//
+				if (sscanf_s(readBuffer, "vt %f %f %f", &x, &y, &z) == 3)
+				{
+					file_texcoords.push_back(vec2f(x, y));
+				}
+				// 2D texel
+				//
+				else if (sscanf_s(readBuffer, "vt %f %f", &x, &y) == 2)
+				{
+					file_texcoords.push_back(vec2f(x, y));
+				}
+			}
+			// 3D vertex
+			//
+			else if (sscanf_s(readBuffer, "v %f %f %f", &x, &y, &z) == 3)
+			{
+				// update vertex offset and mark end to a face section
+				if (face_section)
+				{
+					last_ofs = (int)file_vertices.size();
+					face_section = false;
+				}
+
+				file_vertices.push_back(vec3f(x, y, z));
+			}
+			// 2D vertex
+			//
+			else if (sscanf_s(readBuffer, "v %f %f", &x, &y) == 2)
+			{
+				file_vertices.push_back(vec3f(x, y, 0.0f));
+			}
+
+			continue;
+		}
+
+		// face info
+		//
+		if (readBuffer[0] == 'f')
+		{
+			// face: 4x vertex/texel/normal (triangulate)
+			//
+			if (sscanf_s(readBuffer, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2], &d[0], &d[1], &d[2]) == 12)
+			{
+				if (triangulate) {
+					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
+					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, c[1] - 1, d[1] - 1 });
+				}
+				else
+					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
+			}
+			// face: 3x vertex/texel/normal
+			//
+			else if (sscanf_s(readBuffer, "f %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2]) == 9)
+			{
+				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
+			}
+			// face: 4x vertex
+			//
+			else if (sscanf_s(readBuffer, "f %d %d %d %d", &a[0], &b[0], &c[0], &d[0]) == 4)
+			{
+				if (triangulate) {
+					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
+					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1 });
+				}
+				else
+					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1, -1, -1 });
+			}
+			// face: 3x vertex
+			//
+			else if (sscanf_s(readBuffer, "f %d %d %d", &a[0], &b[0], &c[0]) == 3)
+			{
+				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
+			}
+			// face: 4x vertex/texel (triangulate)
+			//
+			else if (sscanf_s(readBuffer, "f %d/%d %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
+			{
+				if (triangulate) {
+					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
+					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, a[1] - 1, c[1] - 1, d[1] - 1 });
+				}
+				else
+					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
+			}
+			// face: 3x vertex/texel
+			//
+			else if (sscanf_s(readBuffer, "f %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
+			{
+				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
+			}
+			// face: 4x vertex//normal (triangulate)
+			//
+			else if (sscanf_s(readBuffer, "f %d//%d %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
+			{
+				if (triangulate) {
+					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
+					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[1] - 1, c[1] - 1, d[1] - 1, -1, -1, -1 });
+				}
+				else
+					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, -1, -1, -1, -1 });
+			}
+			// face: 3x vertex//normal
+			//
+			else if (sscanf_s(readBuffer, "f %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
+			{
+				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
+			}
+			continue;
+		}
+
 		// material file
 		//
-		if (sscanf_s(line.c_str(), "mtllib %s", str, MaxChars) == 1)
+		if (sscanf_s(readBuffer, "mtllib %s", str, MaxChars) == 1)
 		{
 			LoadMaterials(parentdir, str, file_materials);
+			continue;
 		}
 		// active material
 		//
-		else if (sscanf_s(line.c_str(), "usemtl %s", str, MaxChars) == 1)
+		if (sscanf_s(readBuffer, "usemtl %s", str, MaxChars) == 1)
 		{
 			unwelded_drawcall_t udc;
 			udc.mtl_name = str;
@@ -197,120 +328,11 @@ void OBJLoader::Load(
 			udc.v_ofs = last_ofs; face_section = true; // skinning: set current vertex offset and mark beginning of a face-section
 			file_drawcalls.push_back(udc);
 			current_drawcall = &file_drawcalls.back();
+			continue;
 		}
-		else if (sscanf_s(line.c_str(), "g %s", str, MaxChars) == 1)
+		else if (sscanf_s(readBuffer, "g %s", str, MaxChars) == 1)
 		{
 			current_group_name = str;
-		}
-		// 3D vertex
-		//
-		else if (sscanf_s(line.c_str(), "v %f %f %f", &x, &y, &z) == 3)
-		{
-			// update vertex offset and mark end to a face section
-			if (face_section) {
-				last_ofs = (int)file_vertices.size();
-				face_section = false;
-			}
-
-			file_vertices.push_back(vec3f(x, y, z));
-		}
-		// 2D vertex
-		//
-		else if (sscanf_s(line.c_str(), "v %f %f", &x, &y) == 2)
-		{
-			file_vertices.push_back(vec3f(x, y, 0.0f));
-		}
-		// 3D texel (not supported: ignore last component)
-		//
-		else if (sscanf_s(line.c_str(), "vt %f %f %f", &x, &y, &z) == 3)
-		{
-			file_texcoords.push_back(vec2f(x, y));
-		}
-		// 2D texel
-		//
-		else if (sscanf_s(line.c_str(), "vt %f %f", &x, &y) == 2)
-		{
-			file_texcoords.push_back(vec2f(x, y));
-		}
-		// normal
-		//
-		else if (sscanf_s(line.c_str(), "vn %f %f %f", &x, &y, &z) == 3)
-		{
-			file_normals.push_back(vec3f(x, y, z));
-		}
-		// face: 4x vertex
-		//
-		else if (sscanf_s(line.c_str(), "f %d %d %d %d", &a[0], &b[0], &c[0], &d[0]) == 4)
-		{
-			if (triangulate) {
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
-				current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1 });
-			}
-			else
-				current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1, -1, -1 });
-		}
-		// face: 3x vertex
-		//
-		else if (sscanf_s(line.c_str(), "f %d %d %d", &a[0], &b[0], &c[0]) == 3)
-		{
-			current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
-		}
-		// face: 4x vertex/texel (triangulate)
-		//
-		else if (sscanf_s(line.c_str(), "f %d/%d %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
-		{
-			if (triangulate) {
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
-				current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, a[1] - 1, c[1] - 1, d[1] - 1 });
-			}
-			else
-				current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
-		}
-		// face: 3x vertex/texel
-		//
-		else if (sscanf_s(line.c_str(), "f %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
-		{
-			current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
-		}
-		// face: 4x vertex//normal (triangulate)
-		//
-		else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
-		{
-			if (triangulate) {
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
-				current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[1] - 1, c[1] - 1, d[1] - 1, -1, -1, -1 });
-			}
-			else
-				current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, -1, -1, -1, -1 });
-		}
-		// face: 3x vertex//normal
-		//
-		else if (sscanf_s(line.c_str(), "f %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
-		{
-			current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
-		}
-		// face: 4x vertex/texel/normal (triangulate)
-		//
-		else if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2], &d[0], &d[1], &d[2]) == 12)
-		{
-			if (triangulate) {
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
-				current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, c[1] - 1, d[1] - 1 });
-			}
-			else
-				current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
-		}
-		// face: 3x vertex/texel/normal
-		//
-		else if (sscanf_s(line.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2]) == 9)
-		{
-			current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
-		}
-		// unknown obj syntax
-		//
-		else
-		{
-
 		}
 	}
 	in.close();

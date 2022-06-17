@@ -48,7 +48,7 @@ public:
 	 * @param[in] dt Seconds since the last call.
 	 * @param[in] input_handler Reference to the current InputHandler.
 	*/
-	virtual void Update(float dt, InputHandler* input_handler) = 0;
+	virtual void Update(float dt, const InputHandler& input_handler) = 0;
 	
 	/**
 	 * @brief Render the scene.
@@ -101,8 +101,8 @@ class OurTestScene : public Scene
 	//
 	Camera* camera;
 
-	QuadModel* quad;
-	OBJModel* sponza;
+	Model* quad;
+	Model* sponza;
 
 	// Model-to-world transformation matrices
 	mat4f Msponza;
@@ -143,7 +143,7 @@ public:
 	 * @param dt Time in seconds since last iteration
 	 * @param input_handler Current InputHandler
 	*/
-	void Update(float dt, InputHandler* input_handler) override;
+	void Update(float dt, const InputHandler& input_handler) override;
 
 	/**
 	 * @brief Renders all objects in the scene

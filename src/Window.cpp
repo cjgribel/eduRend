@@ -116,8 +116,8 @@ LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		break;
 
 	case WM_SIZE:
-		m_width = static_cast<size_t>(LOWORD(lParam));
-		m_height = static_cast<size_t>(HIWORD(lParam));
+		m_width = static_cast<uint16_t>(LOWORD(lParam));
+		m_height = static_cast<uint16_t>(HIWORD(lParam));
 		m_sizeChanged = true;
 		break;
 	default:

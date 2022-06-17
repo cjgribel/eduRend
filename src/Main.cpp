@@ -118,18 +118,28 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _
 					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			};
 
-			if (FAILED(create_shader(g_Device,  "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader)) || 
-				FAILED(create_shader(g_Device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader)))
-			{
-				__debugbreak();
-			}
+			ASSERT(create_shader(g_Device, "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &g_VertexShader));
+			ASSERT(create_shader(g_Device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &g_PixelShader));
 
 			scene = std::make_unique<OurTestScene>(
 				g_Device,
 				g_DeviceContext,
 				g_InitialWinWidth,
 				g_InitialWinHeight);
+
+			__int64 cps = 0;
+			QueryPerformanceFrequency((LARGE_INTEGER*)&cps);
+			double ss = 1.0f / (float)cps;
+
+			__int64 start = 0;
+			QueryPerformanceCounter((LARGE_INTEGER*)&start);
+
 			scene->Init();
+
+			__int64 end = 0;
+			QueryPerformanceCounter((LARGE_INTEGER*)&end);
+			double dt = (end - start) * ss;
+			printf("Scene loading took %lfs\n", dt);
 		}
 	}
 
@@ -372,7 +382,7 @@ void SetViewport(int width, int height)
 
 HRESULT Update(float deltaTime)
 {
-	scene->Update(deltaTime, &g_InputHandler);
+	scene->Update(deltaTime, g_InputHandler);
 
 	return S_OK;
 }

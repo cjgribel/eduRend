@@ -67,11 +67,14 @@
     <ClInclude Include="src\shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\OBJModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\QuadModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\InputHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -100,6 +103,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OBJModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\QuadModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
