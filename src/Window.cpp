@@ -53,37 +53,30 @@ bool Window::SizeChanged() const noexcept
 	return m_sizeChanged;
 }
 
-Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_windowHandle(nullptr), m_width(width), m_height(height), m_sizeChanged(false)
+bool Window::Init(uint16_t width, uint16_t height) noexcept
 {
-	// Static instance to handle window callbacks
-	if (s_instance)
-	{
-		throw std::exception("Window already created");
-	}
+	m_width = width;
+	m_height = height;
 	// Register class
-	WNDCLASSEX wcex;
+	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = CallbackWrapper;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = instance;
-	wcex.hIcon = 0;
+	wcex.hInstance = GetModuleHandle(0);
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = nullptr;
 	wcex.lpszClassName = L"DA307A_eduRend";
-	wcex.hIconSm = 0;
 	if (!RegisterClassEx(&wcex))
 	{
-		throw std::exception("Class creation failed");
+		OutputDebugString(L"Window class creation failed");
+		return false;
 	}
 
 	// Adjust and create window
 	RECT rc = { 0, 0, (LONG)m_width, (LONG)m_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
-	m_windowHandle = CreateWindow(
+	if (!(m_windowHandle = CreateWindow(
 		L"DA307A_eduRend",
 		L"DA307A - eduRend",
 		WS_OVERLAPPEDWINDOW,
@@ -93,23 +86,25 @@ Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_wind
 		rc.bottom - rc.top,
 		nullptr,
 		nullptr,
-		instance,
-		nullptr);
-
-	if (!m_windowHandle)
+		wcex.hInstance,
+		nullptr)))
 	{
-		throw std::exception("Window creation failed");
+		OutputDebugString(L"Window creation failed");
+		return false;
 	}
-
 	s_instance = this;
 
-	ShowWindow(m_windowHandle, nCmdShow);
+	ShowWindow(m_windowHandle, SW_SHOW);
+	return true;
 }
 
-Window::~Window() noexcept
+void Window::Shutdown() noexcept
 {
-	DestroyWindow(m_windowHandle);
 	s_instance = nullptr;
+
+	DestroyWindow(m_windowHandle);
+
+	ReleaseCapture();
 }
 
 LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

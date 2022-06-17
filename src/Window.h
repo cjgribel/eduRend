@@ -38,22 +38,27 @@ class Window
 {
 public:
 	/**
-	 * @brief Creates a windows window.
-	 * @param instance Process instance that the window should be created with.
-	 * @param nCmdShow The show command to pass to the window.
-	 * @param width Initial width of the window.
-	 * @param height Initial height of the window.
-	 * 
-	 * @exception Throws "Window already created" exception if a window already exists.
-	 * @exception Throws "Class creation failed" exception if the window class registration fails.
-	 * @exception Throws "Window creation failed" exception if the win32 window creation fails.
+	 * @brief Zero initializes the window class. For Initialization see Init(uint16_t, uint16_t)
 	*/
-	Window(HINSTANCE instance, int nCmdShow, int width = 728, int height = 728);
+	constexpr Window() noexcept : m_windowHandle(0), m_width(0), m_height(0), m_sizeChanged(false) {}
 
 	/**
-	* @brief Destroys the window.
+	* @brief See Shutdown() for actual shutdown.
 	*/
-	~Window() noexcept;
+	~Window() noexcept = default;
+
+	/**
+	 * @brief Creates and initializes the window.
+	 * @param width Initial width of the window.
+	 * @param height Initial height of the window.
+	 * @return True if window creation was successful.
+	*/
+	bool Init(uint16_t width, uint16_t height) noexcept;
+
+	/**
+	 * @brief Releases all resources held by the window
+	*/
+	void Shutdown() noexcept;
 
 	/**
 	 * @brief Processes all window events since last call to this function.
@@ -92,7 +97,7 @@ private:
 private:
 	static Window* s_instance;
 	HWND m_windowHandle;
-	size_t m_width;
-	size_t m_height;
+	uint16_t m_width;
+	uint16_t m_height;
 	bool m_sizeChanged;
 };

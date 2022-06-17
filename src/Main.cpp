@@ -27,26 +27,27 @@
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
-IDXGISwapChain*         g_SwapChain				= nullptr;
-ID3D11RenderTargetView* g_RenderTargetView		= nullptr;
-ID3D11Texture2D*        g_DepthStencil			= nullptr;
-ID3D11DepthStencilView* g_DepthStencilView		= nullptr;
-ID3D11Device*			g_Device				= nullptr;
-ID3D11DeviceContext*	g_DeviceContext			= nullptr;
-ID3D11RasterizerState*	g_RasterState			= nullptr;
+static IDXGISwapChain*			g_SwapChain				= nullptr;
+static ID3D11RenderTargetView*	g_RenderTargetView		= nullptr;
+static ID3D11Texture2D*			g_DepthStencil			= nullptr;
+static ID3D11DepthStencilView*	g_DepthStencilView		= nullptr;
+static ID3D11Device*			g_Device				= nullptr;
+static ID3D11DeviceContext*		g_DeviceContext			= nullptr;
+static ID3D11RasterizerState*	g_RasterState			= nullptr;
 
-shader_data*			g_VertexShader			= nullptr;
-shader_data*			g_PixelShader			= nullptr;
-InputHandler*			g_InputHandler			= nullptr;
+static shader_data*				g_VertexShader			= nullptr;
+static shader_data*				g_PixelShader			= nullptr;
 
 #ifdef _DEBUG
-ID3D11Debug*			g_DebugController		= nullptr;
+static ID3D11Debug*				g_DebugController		= nullptr;
 #endif // _DEBUG
 
-const int g_InitialWinWidth = 1024;
-const int g_InitialWinHeight = 576;
-Window* g_Window;
-std::unique_ptr<Scene> scene;
+static const int g_InitialWinWidth = 1024;
+static const int g_InitialWinHeight = 576;
+
+static InputHandler			g_InputHandler;
+static Window				g_Window;
+static std::unique_ptr<Scene> scene;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -83,7 +84,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _
 #endif
 	
 	// Init the win32 window
-	g_Window = new Window(hInstance, nCmdShow, g_InitialWinWidth, g_InitialWinHeight);
+	g_Window.Init(g_InitialWinWidth, g_InitialWinHeight);
+
+	g_InputHandler.Initialize(hInstance, g_Window.GetHandle(), g_InitialWinWidth, g_InitialWinHeight);
 
 #ifdef USECONSOLE
 	printf("Win32-window created...\n");
@@ -137,14 +140,13 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _
 	__int64 prevTimeStamp = 0;
 	QueryPerformanceCounter((LARGE_INTEGER*)&prevTimeStamp);
 
-	g_InputHandler = new InputHandler();
-	g_InputHandler->Initialize(hInstance, g_Window->GetHandle(), g_InitialWinWidth, g_InitialWinHeight);
+	
 
 	printf("Entering main loop...\n");
 	
-	while (g_Window->Update())
+	while (g_Window.Update())
 	{
-		if (g_Window->SizeChanged())
+		if (g_Window.SizeChanged())
 		{
 			WinResize();
 		}
@@ -152,7 +154,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _
 		__int64 currTimeStamp = 0;
 		QueryPerformanceCounter((LARGE_INTEGER*)&currTimeStamp);
 		const float dt = (currTimeStamp - prevTimeStamp) * secsPerCnt;
-		g_InputHandler->Update();
+		g_InputHandler.Update();
 		
 		Update(dt);
 		Render(dt);
@@ -172,7 +174,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR, _
 // they need to be handled here as well.
 void WinResize()
 {
-	const linalg::vec2i size = g_Window->GetSize();
+	const linalg::vec2i size = g_Window.GetSize();
 
 	printf("window resized to %i x %i\n", size.x, size.y);
 
@@ -250,7 +252,7 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = g_Window->GetHandle(); // g_hWnd;
+	sd.OutputWindow = g_Window.GetHandle(); // g_hWnd;
 	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
@@ -370,7 +372,7 @@ void SetViewport(int width, int height)
 
 HRESULT Update(float deltaTime)
 {
-	scene->Update(deltaTime, g_InputHandler);
+	scene->Update(deltaTime, &g_InputHandler);
 
 	return S_OK;
 }
@@ -417,8 +419,6 @@ void Release()
 {
 	SAFE_RELEASE(scene);
 
-	SAFE_DELETE(g_InputHandler);
-
 	delete_shader(g_VertexShader);
 	delete_shader(g_PixelShader);
 
@@ -436,5 +436,7 @@ void Release()
 	SAFE_RELEASE(g_DebugController);
 #endif
 	SAFE_RELEASE(g_Device);
-  SAFE_DELETE(g_Window);
+
+	g_InputHandler.Shutdown();
+	g_Window.Shutdown();
 }
