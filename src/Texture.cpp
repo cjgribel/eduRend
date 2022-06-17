@@ -57,8 +57,7 @@ HRESULT LoadTextureFromFile(
     }
 
     // Create texture
-    D3D11_TEXTURE2D_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
+    D3D11_TEXTURE2D_DESC desc = {};
     desc.Width = image_width;
     desc.Height = image_height;
     desc.MipLevels = mipLevels;
@@ -96,8 +95,7 @@ HRESULT LoadTextureFromFile(
             0);
 
     // Create texture view
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = desc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 
@@ -147,8 +145,7 @@ HRESULT LoadCubeTextureFromFile(
     }
 
     // Create texture
-    D3D11_TEXTURE2D_DESC desc;
-    ZeroMemory(&desc, sizeof(desc));
+    D3D11_TEXTURE2D_DESC desc = {};
     desc.Width = image_width;
     desc.Height = image_height;
     desc.MipLevels = 1;
@@ -175,8 +172,7 @@ HRESULT LoadCubeTextureFromFile(
     SETNAME(pTexture, "TextureData");
 
     // Create texture view
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     srvDesc.Texture2D.MipLevels = desc.MipLevels;
