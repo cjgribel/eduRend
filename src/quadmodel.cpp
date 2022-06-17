@@ -10,7 +10,7 @@ QuadModel::QuadModel(
 	std::vector<Vertex> vertices;
 	std::vector<unsigned> indices;
 
-	// Populate the vertex array with 4 vertices
+	// Populate the vertex array with 4 Vertices
 	Vertex v0, v1, v2, v3;
 	v0.Pos = { -0.5, -0.5f, 0.0f };
 	v0.Normal = { 0, 0, 1 };
@@ -50,8 +50,8 @@ QuadModel::QuadModel(
 	D3D11_SUBRESOURCE_DATA vdata;
 	vdata.pSysMem = &vertices[0];
 	// Create vertex buffer on device using descriptor & data
-	dxdevice->CreateBuffer(&vbufferDesc, &vdata, &vertex_buffer);
-	SETNAME(vertex_buffer, "VertexBuffer");
+	dxdevice->CreateBuffer(&vbufferDesc, &vdata, &m_vertex_buffer);
+	SETNAME(m_vertex_buffer, "VertexBuffer");
 
 	//  Index array descriptor
 	D3D11_BUFFER_DESC ibufferDesc = { 0 };
@@ -64,10 +64,10 @@ QuadModel::QuadModel(
 	D3D11_SUBRESOURCE_DATA idata;
 	idata.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
-	dxdevice->CreateBuffer(&ibufferDesc, &idata, &index_buffer);
-	SETNAME(index_buffer, "IndexBuffer");
+	dxdevice->CreateBuffer(&ibufferDesc, &idata, &m_index_buffer);
+	SETNAME(m_index_buffer, "IndexBuffer");
 
-	nbr_indices = (unsigned int)indices.size();
+	m_number_of_indices = (unsigned int)indices.size();
 }
 
 
@@ -76,11 +76,11 @@ void QuadModel::Render() const
 	// Bind our vertex buffer
 	const UINT32 stride = sizeof(Vertex); //  sizeof(float) * 8;
 	const UINT32 offset = 0;
-	dxdevice_context->IASetVertexBuffers(0, 1, &vertex_buffer, &stride, &offset);
+	m_dxdevice_context->IASetVertexBuffers(0, 1, &m_vertex_buffer, &stride, &offset);
 
 	// Bind our index buffer
-	dxdevice_context->IASetIndexBuffer(index_buffer, DXGI_FORMAT_R32_UINT, 0);
+	m_dxdevice_context->IASetIndexBuffer(m_index_buffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// Make the drawcall
-	dxdevice_context->DrawIndexed(nbr_indices, 0, 0);
+	m_dxdevice_context->DrawIndexed(m_number_of_indices, 0, 0);
 }

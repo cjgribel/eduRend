@@ -1,5 +1,5 @@
 /**
- * @file OBJModel.h
+ * @file objmodel.h
  * @brief Contains the OBJModel
  * @author Carl Johan Gribel 2016, cjgribel@gmail.com
 */
@@ -13,7 +13,7 @@
 */
 class OBJModel : public Model
 {
-	// index ranges, representing drawcalls, within an index array
+	// index ranges, representing Drawcalls, within an index array
 	struct IndexRange
 	{
 		unsigned int start;
@@ -32,12 +32,22 @@ class OBJModel : public Model
 
 public:
 
-	OBJModel(
-		const std::string& objfile,
-		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context);
+	/**
+	 * @brief Creates a .obj model.
+	 * @details Uses OBJLoader internaly.
+	 * @param objfile Path to the .obj file.
+	 * @param dxdevice Valid ID3D11Device.
+	 * @param dxdevice_context Valid ID3D11DeviceContext.
+	*/
+	OBJModel(const std::string& objfile, ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context);
 
+	/**
+	 * @brief Renders the model.
+	*/
 	virtual void Render() const;
 
+	/**
+	 * @brief Destructor 
+	*/
 	~OBJModel();
 };

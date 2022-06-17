@@ -1,5 +1,5 @@
 /**
- * @file OBJLoader.h
+ * @file objloader.h
  * @brief OBJ/MTL loader
  * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
 */
@@ -25,33 +25,27 @@
 #define ALLOWED_TEXTURE_SUFFIXES { "bmp", "jpg", "png", "tga", "gif" }
 
 /**
- * @brief OBJ Loader
- * @details Parses OBJ/MTL-files and organizes the data in arrays with vertices, drawcalls and materials
+ * @brief OBJ Loader.
+ * @details Parses OBJ/MTL-files and organizes the data in arrays with Vertices, Drawcalls and materials.
 */
 class OBJLoader
 {
-    void LoadMaterials(
-        std::string dir,
-        std::string filename,
-        MaterialHash& mtl_hash);
+    void LoadMaterials(std::string directory, std::string filename, MaterialHash& material_hash);
 public:
     /**
-     * @brief Loads a .obj file and any linked .mtl file
-     * @param filename Path to the file
-     * @param auto_generate_normals Should nomals be automatically generated if they are not contained in the file
-     * @param triangulate Should quads be triangulated
+     * @brief Loads a .obj file and any linked .mtl file.
+     * @param filename Path to the file.
+     * @param auto_generate_normals Should normals be automatically generated if they are not contained in the file.
+     * @param triangulate Should quads be triangulated.
     */
-    void Load(
-        const std::string& filename,
-        bool auto_generate_normals = true,
-        bool triangulate = true);
+    void Load(const std::string& filename, bool auto_generate_normals = true, bool triangulate = true);
 
-    bool has_normals = false; //!< Does the model contain normals.
-    bool has_texcoords = false; //!< Does the model contain uv-coordinates
+    bool HasNormals = false; //!< Does the model contain normals.
+    bool HasTexcoords = false; //!< Does the model contain uv-coordinates
 
-    std::vector<Vertex> vertices; //!< Vector of Vertex data
-    std::vector<Drawcall> drawcalls; //!< Vector of Drawcall data
-    std::vector<Material> materials; //!< Vector of Material data
+    std::vector<Vertex> Vertices; //!< Vector of Vertex data
+    std::vector<Drawcall> Drawcalls; //!< Vector of Drawcall data
+    std::vector<Material> Materials; //!< Vector of Material data
 };
 
 #endif

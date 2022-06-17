@@ -28,7 +28,7 @@ struct unwelded_drawcall_t
 };
 
 //
-// Creates normals to a set of vertices by averaging the 
+// Creates normals to a set of Vertices by averaging the 
 // geometric normals of the faces they belong to
 //
 // If a model lacks normals, this function can be used 
@@ -43,6 +43,7 @@ void GenerateNormals(
 
 	// bin normals from all faces to vertex bins
 	for (unwelded_drawcall_t& dc : drawcalls)
+	{
 		for (unwelded_triangle_t& tri : dc.tris)
 		{
 			int a = tri.vi[0], b = tri.vi[1], c = tri.vi[2];
@@ -55,6 +56,7 @@ void GenerateNormals(
 
 			memcpy(tri.vi + 3, tri.vi, 3 * sizeof(int));
 		}
+	}
 
 	// average binned normals and add to array
 	for (size_t i = 0; i < v.size(); i++)
@@ -102,7 +104,7 @@ void OBJLoader::LoadMaterials(
             
             mtl_hash[str0] = Material();
             current_mtl = &mtl_hash[str0];
-            current_mtl->name = str0;
+            current_mtl->Name = str0;
         }
         else if (!current_mtl)
         {
@@ -114,39 +116,39 @@ void OBJLoader::LoadMaterials(
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->Kd_texture_filename = path + mapfile;
+                current_mtl->DiffuseTextureFilename = path + mapfile;
             else
-                throw std::runtime_error(std::string("Error: no allowed format found for 'map_Kd' in material ") + current_mtl->name);
+                throw std::runtime_error(std::string("Error: no allowed format found for 'map_Kd' in material ") + current_mtl->Name);
         }
         else if (sscanf_s(line.c_str(), "map_bump %[^\n]", str0, MaxChars) == 1)
         {
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->normal_texture_filename = path+mapfile;
+                current_mtl->NormalTextureFilename = path+mapfile;
             else
-                throw std::runtime_error(std::string("Error: no allowed format found for 'map_bump' in material ") + current_mtl->name);
+                throw std::runtime_error(std::string("Error: no allowed format found for 'map_bump' in material ") + current_mtl->Name);
         }
         else if (sscanf_s(line.c_str(), "bump %[^\n]", str0, MaxChars) == 1)
         {
             // search for the image file and ignore the rest
             std::string mapfile;
 			if (find_filename_from_suffixes(str0, ALLOWED_TEXTURE_SUFFIXES, mapfile))
-                current_mtl->normal_texture_filename = path+mapfile;
+                current_mtl->NormalTextureFilename = path+mapfile;
             else
-                throw std::runtime_error(std::string("Error: no allowed format found for 'bump' in material ") + current_mtl->name);
+                throw std::runtime_error(std::string("Error: no allowed format found for 'bump' in material ") + current_mtl->Name);
         }
         else if (sscanf_s(line.c_str(), "Ka %f %f %f", &a, &b, &c) == 3)
         {
-            current_mtl->Ka = vec3f(a, b, c);
+            current_mtl->AmbientColour = vec3f(a, b, c);
         }
         else if (sscanf_s(line.c_str(), "Kd %f %f %f", &a, &b, &c) == 3)
         {
-            current_mtl->Kd = vec3f(a, b, c);
+            current_mtl->DiffuseColour = vec3f(a, b, c);
         }
         else if (sscanf_s(line.c_str(), "Ks %f %f %f", &a, &b, &c) == 3)
         {
-            current_mtl->Ks = vec3f(a, b, c);
+            current_mtl->SpecularColour = vec3f(a, b, c);
         }
     }
     in.close();
@@ -244,7 +246,8 @@ void OBJLoader::Load(
 			//
 			if (sscanf_s(readBuffer, "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2], &d[0], &d[1], &d[2]) == 12)
 			{
-				if (triangulate) {
+				if (triangulate) 
+				{
 					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
 					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, c[1] - 1, d[1] - 1 });
 				}
@@ -261,7 +264,8 @@ void OBJLoader::Load(
 			//
 			else if (sscanf_s(readBuffer, "f %d %d %d %d", &a[0], &b[0], &c[0], &d[0]) == 4)
 			{
-				if (triangulate) {
+				if (triangulate) 
+				{
 					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
 					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1 });
 				}
@@ -278,7 +282,8 @@ void OBJLoader::Load(
 			//
 			else if (sscanf_s(readBuffer, "f %d/%d %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
 			{
-				if (triangulate) {
+				if (triangulate) 
+				{
 					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
 					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, a[1] - 1, c[1] - 1, d[1] - 1 });
 				}
@@ -295,7 +300,8 @@ void OBJLoader::Load(
 			//
 			else if (sscanf_s(readBuffer, "f %d//%d %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1], &d[0], &d[1]) == 8)
 			{
-				if (triangulate) {
+				if (triangulate) 
+				{
 					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
 					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[1] - 1, c[1] - 1, d[1] - 1, -1, -1, -1 });
 				}
@@ -341,18 +347,18 @@ void OBJLoader::Load(
 	if (!file_drawcalls.size())
 		file_drawcalls.push_back(default_drawcall);
 
-	has_normals = (bool)file_normals.size();
-	has_texcoords = (bool)file_texcoords.size();
+	HasNormals = (bool)file_normals.size();
+	HasTexcoords = (bool)file_texcoords.size();
 
 	printf("Loaded:\n\t%d vertices\n\t%d texels\n\t%d normals\n\t%d drawcalls\n",
 		(int)file_vertices.size(), (int)file_texcoords.size(), (int)file_normals.size(), (int)file_drawcalls.size());
 
 #if 1
 	// auto-generate normals
-	if (!has_normals && auto_generate_normals)
+	if (!HasNormals && auto_generate_normals)
 	{
 		GenerateNormals(file_vertices, file_normals, file_drawcalls);
-		has_normals = true;
+		HasNormals = true;
 		printf("Auto-generated %d normals\n", (int)file_normals.size());
 	}
 #endif
@@ -363,8 +369,10 @@ void OBJLoader::Load(
 	std::unordered_map<std::string, unsigned> mtl_to_index_hash;
 
 	// hash function for int3
-	struct int3_hashfunction {
-		std::size_t operator () (const int3& i3) const {
+	struct int3_hashfunction 
+	{
+		std::size_t operator () (const int3& i3) const 
+		{
 			return i3.x;
 		}
 	};
@@ -372,7 +380,7 @@ void OBJLoader::Load(
 	for (auto &dc : file_drawcalls)
 	{
 		Drawcall wdc;
-		wdc.group_name = dc.group_name;
+		wdc.GroupName = dc.group_name;
 
 		std::unordered_map<int3, unsigned, int3_hashfunction> index3_to_index_hash;
 
@@ -390,19 +398,21 @@ void OBJLoader::Load(
 				if (mtl == file_materials.end())
 					throw std::runtime_error(std::string("Error: used material ") + dc.mtl_name + " not found\n");
 
-				wdc.mtl_index = (unsigned)materials.size();
-				mtl_to_index_hash[dc.mtl_name] = (unsigned)materials.size();
+				wdc.MaterialIndex = (unsigned)Materials.size();
+				mtl_to_index_hash[dc.mtl_name] = (unsigned)Materials.size();
 
-				materials.push_back(mtl->second);
+				Materials.push_back(mtl->second);
 			}
 			else
-				wdc.mtl_index = mtl_index->second;;
+				wdc.MaterialIndex = mtl_index->second;;
 		}
 		else
+		{
 			// mtl string is empty, use empty index
-			wdc.mtl_index = -1;
+			wdc.MaterialIndex = -1;
+		}
 
-		// weld vertices from triangles
+		// weld Vertices from triangles
 		//
 		for (auto &tri : dc.tris)
 		{
@@ -421,22 +431,22 @@ void OBJLoader::Load(
 					if (i3.y > -1) v.Normal = file_normals[i3.y];
 					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];
 
-					wtri.vi[i] = (unsigned)vertices.size();
-					index3_to_index_hash[i3] = (unsigned)(vertices.size());
+					wtri.VertexIndices[i] = (unsigned)Vertices.size();
+					index3_to_index_hash[i3] = (unsigned)(Vertices.size());
 
-					vertices.push_back(v);
+					Vertices.push_back(v);
 				}
 				else
 				{
 					// use existing index-combo
-					wtri.vi[i] = s->second;
+					wtri.VertexIndices[i] = s->second;
 				}
 			}
-			wdc.tris.push_back(wtri);
+			wdc.Triangles.push_back(wtri);
 		}
 
 #if 1
-		// weld vertices from quads
+		// weld Vertices from quads
 		//
 		for (auto &quad : dc.quads)
 		{
@@ -455,62 +465,68 @@ void OBJLoader::Load(
 					if (i3.y > -1) v.Normal = file_normals[i3.y];
 					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];
 
-					wquad.vi[i] = (unsigned)vertices.size();
-					index3_to_index_hash[i3] = (unsigned)(vertices.size());
+					wquad.VertexIndices[i] = (unsigned)Vertices.size();
+					index3_to_index_hash[i3] = (unsigned)(Vertices.size());
 
-					vertices.push_back(v);
+					Vertices.push_back(v);
 				}
 				else
 				{
 					// use existing index-combo
-					wquad.vi[i] = s->second;
+					wquad.VertexIndices[i] = s->second;
 				}
 			}
-			wdc.quads.push_back(wquad);
+			wdc.Quads.push_back(wquad);
 		}
 #endif
 
-		drawcalls.push_back(wdc);
+		Drawcalls.push_back(wdc);
 	}
 	printf("Done\n");
 
 	// Produce and print some stats
 	//
 	int tris = 0, quads = 0;
-	for (auto &dc : drawcalls){
-		tris += (int)dc.tris.size();
-		quads += (int)dc.quads.size();
+	for (auto &dc : Drawcalls)
+	{
+		tris += (int)dc.Triangles.size();
+		quads += (int)dc.Quads.size();
 	}
 	printf("\t%d vertices\n\t%d drawcalls\n\t%d triangles\n\t%d quads\n",
-		(int)vertices.size(), (int)drawcalls.size(), tris, quads);
+		(int)Vertices.size(), (int)Drawcalls.size(), tris, quads);
 	printf("Loaded materials:\n");
-	for (auto &mtl : materials)
-		printf("\t%s\n", mtl.name.c_str());
+
+	for (auto& mtl : Materials)
+	{
+		printf("\t%s\n", mtl.Name.c_str());
+	}
 
 #ifdef MESH_FORCE_CCW
     // Force counter-clockwise: 
 	// flip triangle if geometric normal points away from vertex normal (at index=0)
-    for (auto& dc : drawcalls)
-        for (auto& tri : dc.tris)
-        {
-            int a = tri.vi[0], b = tri.vi[1], c = tri.vi[2];
-            vec3f v0 = vertices[a].Pos, v1 = vertices[b].Pos, v2 = vertices[c].Pos;
+	for (auto& dc : Drawcalls)
+	{
+		for (auto& tri : dc.Triangles)
+		{
+			int a = tri.VertexIndices[0], b = tri.VertexIndices[1], c = tri.VertexIndices[2];
+			vec3f v0 = Vertices[a].Pos, v1 = Vertices[b].Pos, v2 = Vertices[c].Pos;
 
-            vec3f geo_n = linalg::normalize((v1-v0)%(v2-v0));
-            vec3f vert_n = vertices[a].Normal;
-            
-            if (linalg::dot(geo_n, vert_n) < 0)
-                std::swap(tri.vi[0], tri.vi[1]);
-        }
+			vec3f geo_n = linalg::normalize((v1 - v0) % (v2 - v0));
+			vec3f vert_n = Vertices[a].Normal;
+
+			if (linalg::dot(geo_n, vert_n) < 0)
+				std::swap(tri.VertexIndices[0], tri.VertexIndices[1]);
+		}
+	}
 #endif
     
 #ifdef MESH_SORT_DRAWCALLS
-	// Sort drawcalls based on material
+	// Sort Drawcalls based on material
 	// This is a first step towards 'batch-rendering', which means that 
-	// drawcalls with the same resources (mainly shader & material) are 
+	// Drawcalls with the same resources (mainly shader & material) are 
 	// rendered back-to-back to make the number of texture binds (which are slow)
 	// as low as possible
-    std::sort(drawcalls.begin(), drawcalls.end());
+    std::sort(Drawcalls.begin(), Drawcalls.end());
 	printf("Sorted drawcalls\n");
 #endif
     

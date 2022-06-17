@@ -9,33 +9,33 @@ InputHandler& InputHandler::operator=(InputHandler&& other) noexcept
 {
 	if (this == &other) return *this;
 
-	std::swap(m_directInput, other.m_directInput);
+	std::swap(m_direct_input, other.m_direct_input);
 	std::swap(m_keyboard, other.m_keyboard);
 	std::swap(m_mouse, other.m_mouse);
-	std::swap(m_keyboardState, other.m_keyboardState);
-	std::swap(m_mouseState, other.m_mouseState);
-	std::swap(m_prevMouseState, other.m_prevMouseState);
-	std::swap(m_directInput, other.m_directInput);
-	std::swap(m_screenWidth, other.m_screenWidth);
-	std::swap(m_screenHeight, other.m_screenHeight);
-	std::swap(m_mouseX, other.m_mouseX);
+	std::swap(m_keyboard_state, other.m_keyboard_state);
+	std::swap(m_mouse_state, other.m_mouse_state);
+	std::swap(m_previous_mouse_state, other.m_previous_mouse_state);
+	std::swap(m_direct_input, other.m_direct_input);
+	std::swap(m_screen_width, other.m_screen_width);
+	std::swap(m_screen_height, other.m_screen_height);
+	std::swap(m_mouse_x, other.m_mouse_x);
 
 	return *this;
 }
 
 bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, int screenHeight) noexcept
 {
-	m_screenHeight = screenHeight;
-	m_screenWidth = screenWidth;
-	m_mouseX = 0;
-	m_mouseY = 0;
+	m_screen_height = screenHeight;
+	m_screen_width = screenWidth;
+	m_mouse_x = 0;
+	m_mouse_y = 0;
 	HRESULT result;
-	result = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_directInput, nullptr);
+	result = DirectInput8Create(hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&m_direct_input, nullptr);
 	if (FAILED(result)){
 		return false;
 	}
 
-	result = m_directInput->CreateDevice(GUID_SysKeyboard, &m_keyboard, NULL);
+	result = m_direct_input->CreateDevice(GUID_SysKeyboard, &m_keyboard, NULL);
 	if (FAILED(result))
 	{
 		return false;
@@ -53,7 +53,7 @@ bool InputHandler::Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, i
 		return false;
 	}
 
-	result = m_directInput->CreateDevice(GUID_SysMouse, &m_mouse, NULL);
+	result = m_direct_input->CreateDevice(GUID_SysMouse, &m_mouse, NULL);
 	if (FAILED(result))
 	{
 		return false;
@@ -92,9 +92,9 @@ void InputHandler::Shutdown() noexcept
 		m_keyboard->Release();
 	}
 
-	if (m_directInput)
+	if (m_direct_input)
 	{
-		m_directInput->Release();
+		m_direct_input->Release();
 	}
 
 	return;
@@ -123,13 +123,13 @@ bool InputHandler::Update() noexcept
 
 void InputHandler::GetMouseLocation(int& mouseX, int& mouseY) const noexcept
 {
-	mouseX = this->m_mouseX;
-	mouseY = this->m_mouseY;
+	mouseX = this->m_mouse_x;
+	mouseY = this->m_mouse_y;
 }
 
 bool InputHandler::IsKeyPressed(Keys key) const noexcept
 {
-	if (m_keyboardState[(int)key] & 0x80)
+	if (m_keyboard_state[(int)key] & 0x80)
 	{
 		return true;
 	}
@@ -138,19 +138,19 @@ bool InputHandler::IsKeyPressed(Keys key) const noexcept
 
 LONG InputHandler::GetMouseDeltaX() const noexcept
 {
-	return m_mouseState.lX;
+	return m_mouse_state.lX;
 }
 
 LONG InputHandler::GetMouseDeltaY() const noexcept
 {
-	return m_mouseState.lY;
+	return m_mouse_state.lY;
 }
 
 bool InputHandler::ReadKeyboard() noexcept
 {
 	HRESULT result;
 
-	result = m_keyboard->GetDeviceState(sizeof(m_keyboardState), (LPVOID)&m_keyboardState);
+	result = m_keyboard->GetDeviceState(sizeof(m_keyboard_state), (LPVOID)&m_keyboard_state);
 	if (FAILED(result))
 	{
 		if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
@@ -169,8 +169,8 @@ bool InputHandler::ReadKeyboard() noexcept
 bool InputHandler::ReadMouse() noexcept
 {
 	HRESULT result;
-	m_prevMouseState = m_mouseState;
-	result = m_mouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&m_mouseState);
+	m_previous_mouse_state = m_mouse_state;
+	result = m_mouse->GetDeviceState(sizeof(DIMOUSESTATE), (LPVOID)&m_mouse_state);
 	if (FAILED(result))
 	{
 		if ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))
@@ -188,6 +188,6 @@ bool InputHandler::ReadMouse() noexcept
 
 void InputHandler::ProcessInput() noexcept
 {
-	m_mouseX += m_mouseState.lX;
-	m_mouseY += m_mouseState.lY;
+	m_mouse_x += m_mouse_state.lX;
+	m_mouse_y += m_mouse_state.lY;
 }

@@ -1,5 +1,5 @@
 /**
- * @file Scene.h
+ * @file scene.h
  * @brief Contains scene related classes
 */
 
@@ -12,6 +12,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include "Texture.h"
+#include "buffers.h"
 
 /**
  * @brief Abstract class defining scene rendering and updating.
@@ -27,11 +28,7 @@ public:
 	 * @param[in] window_width Window hight for the scene.
 	 * @param[in] window_height Window width for the scene.
 	*/
-	Scene(
-		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context,
-		int window_width,
-		int window_height);
+	Scene(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context, int window_width, int window_height);
 
 	/**
 	 * @brief Initialize all scene data.
@@ -45,10 +42,10 @@ public:
 
 	/**
 	 * @brief Update any relevant scene data.
-	 * @param[in] dt Seconds since the last call.
+	 * @param[in] delta_time Seconds since the last call.
 	 * @param[in] input_handler Reference to the current InputHandler.
 	*/
-	virtual void Update(float dt, const InputHandler& input_handler) = 0;
+	virtual void Update(float delta_time, const InputHandler& input_handler) = 0;
 	
 	/**
 	 * @brief Render the scene.
@@ -61,14 +58,13 @@ public:
 	 * @param[in] window_width New window width.
 	 * @param[in] window_height New window height.
 	*/
-	virtual void WindowResize(int window_width,	int window_height);
+	virtual void OnWindowResized(int window_width,	int window_height);
 
 protected:
-	ID3D11Device* dxdevice;
-	ID3D11DeviceContext* dxdevice_context;
-	int						window_width;
-	int						window_height;
-
+	ID3D11Device*			m_dxdevice; //!< Graphics device, use for creating resources.
+	ID3D11DeviceContext*	m_dxdevice_context; //!< Graphics context, use for binding resources and draw commands.
+	int						m_window_width; //!< Current width of the window.
+	int						m_window_height; //!< Current height of the window.
 };
 
 /**
@@ -81,57 +77,42 @@ class OurTestScene : public Scene
 	//
 
 	// CBuffer for transformation matrices
-	ID3D11Buffer* transformation_buffer = nullptr;
+	ID3D11Buffer* m_transformation_buffer = nullptr;
 	// + other CBuffers
-
-	// 
-	// CBuffer client-side definitions
-	// These must match the corresponding shader definitions 
-	//
-
-	struct TransformationBuffer
-	{
-		mat4f ModelToWorldMatrix;
-		mat4f WorldToViewMatrix;
-		mat4f ProjectionMatrix;
-	};
 
 	//
 	// Scene content
 	//
-	Camera* camera;
+	Camera* m_camera;
 
-	Model* quad;
-	Model* sponza;
+	Model* m_quad;
+	Model* m_sponza;
 
-	// Model-to-world transformation matrices
-	mat4f Msponza;
-	mat4f Mquad;
+	mat4f m_sponza_transform;
+	mat4f m_quad_transform;
 
-	// World-to-view matrix
-	mat4f Mview;
-	// Projection matrix
-	mat4f Mproj;
+	mat4f m_view_matrix;
+	mat4f m_projection_matrix;
 
 	// Misc
-	float angle = 0;			// A per-frame updated rotation angle (radians)...
-	float angle_vel = fPI / 2;	// ...and its velocity (radians/sec)
-	float camera_vel = 5.0f;	// Camera movement velocity in units/s
-	float fps_cooldown = 0;
+	float m_angle = 0;			// A per-frame updated rotation angle (radians)...
+	float m_angular_velocity = fPI / 2;	// ...and its velocity (radians/sec)
+	float m_camera_velocity = 5.0f;	// Camera movement velocity in units/s
+	float m_fps_cooldown = 0;
 
 	void InitTransformationBuffer();
 
-	void UpdateTransformationBuffer(
-		mat4f ModelToWorldMatrix,
-		mat4f WorldToViewMatrix,
-		mat4f ProjectionMatrix);
+	void UpdateTransformationBuffer(mat4f model_to_world_matrix, mat4f world_to_view_matrix, mat4f projection_matrix);
 
 public:
-	OurTestScene(
-		ID3D11Device* dxdevice,
-		ID3D11DeviceContext* dxdevice_context,
-		int window_width,
-		int window_height);
+	/**
+	 * @brief Constructor
+	 * @param dxdevice Valid ID3D11Device.
+	 * @param dxdevice_context Valid ID3D11DeviceContext.
+	 * @param window_width Current window width.
+	 * @param window_height Current window height.
+	*/
+	OurTestScene(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context,	int window_width, int window_height);
 
 	/**
 	 * @brief Initializes all resources held by the scene.
@@ -160,7 +141,7 @@ public:
 	 * @param window_width New width
 	 * @param window_height New height
 	*/
-	void WindowResize(int window_width,	int window_height) override;
+	void OnWindowResized(int window_width, int window_height) override;
 };
 
 #endif

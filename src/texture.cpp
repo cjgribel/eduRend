@@ -34,7 +34,7 @@ HRESULT LoadTextureFromFile(
     int mostDetailedMip = 0;
     
     bool useMipMap = (bool)dxdevice_context;
-    // Generate mip hierarchy if a dxdevice_context is provided
+    // Generate mip hierarchy if a m_dxdevice_context is provided
     if (useMipMap)
     {
         mipLevels = 0;
@@ -104,22 +104,22 @@ HRESULT LoadTextureFromFile(
     if (FAILED(hr = dxdevice->CreateShaderResourceView(
         pTexture,
         &srvDesc,
-        &texture_out->texture_SRV)))
+        &texture_out->TextureView)))
     {
         return hr;
     }
-    SETNAME((texture_out->texture_SRV), "TextureSRV");
+    SETNAME((texture_out->TextureView), "TextureSRV");
 
     if (useMipMap)
-        dxdevice_context->GenerateMips(texture_out->texture_SRV);
+        dxdevice_context->GenerateMips(texture_out->TextureView);
 
     // Cleanup
     pTexture->Release();
     stbi_image_free(image_data);
 
     // Done
-    texture_out->width = image_width;
-    texture_out->height = image_height;
+    texture_out->Width = image_width;
+    texture_out->Weight = image_height;
     return S_OK;
 }
 
@@ -180,11 +180,11 @@ HRESULT LoadCubeTextureFromFile(
     if (FAILED(hr = dxdevice->CreateShaderResourceView(
         pTexture, 
         &srvDesc,
-        &texture_out->texture_SRV)))
+        &texture_out->TextureView)))
     {
         return hr;
     }
-    SETNAME((texture_out->texture_SRV), "TextureSRV");
+    SETNAME((texture_out->TextureView), "TextureSRV");
 
     // Cleanup
     pTexture->Release();
@@ -192,7 +192,7 @@ HRESULT LoadCubeTextureFromFile(
         stbi_image_free(image_data[i]);
 
     // Done
-    texture_out->width = image_width;
-    texture_out->height = image_height;
+    texture_out->Width = image_width;
+    texture_out->Weight = image_height;
     return S_OK;
 }

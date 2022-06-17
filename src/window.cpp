@@ -11,7 +11,7 @@ Window* Window::s_instance = nullptr;
 
 bool Window::Update() noexcept
 {
-	m_sizeChanged = false;
+	m_size_changed = false;
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
@@ -30,7 +30,7 @@ bool Window::Update() noexcept
 
 HWND Window::GetHandle() noexcept
 {
-	return m_windowHandle;
+	return m_window_handle;
 }
 
 linalg::vec2i Window::GetSize() const noexcept
@@ -41,7 +41,7 @@ linalg::vec2i Window::GetSize() const noexcept
 Rect Window::GetBounds() const noexcept
 {
 	RECT rect;
-	if (GetWindowRect(m_windowHandle, &rect))
+	if (GetWindowRect(m_window_handle, &rect))
 	{
 		return { static_cast<int>(rect.left),static_cast<int>(rect.top), static_cast<int>(rect.right), static_cast<int>(rect.bottom) };
 	}
@@ -50,7 +50,7 @@ Rect Window::GetBounds() const noexcept
 
 bool Window::SizeChanged() const noexcept
 {
-	return m_sizeChanged;
+	return m_size_changed;
 }
 
 bool Window::Init(uint16_t width, uint16_t height) noexcept
@@ -76,7 +76,7 @@ bool Window::Init(uint16_t width, uint16_t height) noexcept
 	RECT rc = { 0, 0, (LONG)m_width, (LONG)m_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
-	if (!(m_windowHandle = CreateWindow(
+	if (!(m_window_handle = CreateWindow(
 		L"DA307A_eduRend",
 		L"DA307A - eduRend",
 		WS_OVERLAPPEDWINDOW,
@@ -94,7 +94,7 @@ bool Window::Init(uint16_t width, uint16_t height) noexcept
 	}
 	s_instance = this;
 
-	ShowWindow(m_windowHandle, SW_SHOW);
+	ShowWindow(m_window_handle, SW_SHOW);
 	return true;
 }
 
@@ -102,7 +102,7 @@ void Window::Shutdown() noexcept
 {
 	s_instance = nullptr;
 
-	DestroyWindow(m_windowHandle);
+	DestroyWindow(m_window_handle);
 
 	ReleaseCapture();
 }
@@ -118,7 +118,7 @@ LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 	case WM_SIZE:
 		m_width = static_cast<uint16_t>(LOWORD(lParam));
 		m_height = static_cast<uint16_t>(HIWORD(lParam));
-		m_sizeChanged = true;
+		m_size_changed = true;
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

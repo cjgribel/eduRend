@@ -1,5 +1,5 @@
 /**
- * @file Model.h
+ * @file model.h
  * @brief Contains model definitions
  * @author Carl Johan Gribel 2016, cjgribel@gmail.com
 */
@@ -25,12 +25,12 @@ class Model
 {
 protected:
 	// Pointers to the current device and device context
-	ID3D11Device* const			dxdevice;
-	ID3D11DeviceContext* const	dxdevice_context;
+	ID3D11Device* const			m_dxdevice; //!< Graphics device, use for creating resources.
+	ID3D11DeviceContext* const	m_dxdevice_context; //!< Graphics context, use for binding resources and draw commands.
 
 	// Pointers to the class' vertex & index arrays
-	ID3D11Buffer* vertex_buffer = nullptr;
-	ID3D11Buffer* index_buffer = nullptr;
+	ID3D11Buffer* m_vertex_buffer = nullptr; //!< Pointer to gpu side vertex buffer
+	ID3D11Buffer* m_index_buffer = nullptr; //!< Pointer to gpu side index buffer
 
 public:
 
@@ -39,12 +39,8 @@ public:
 	 * @param dxdevice ID3D11Device to be used in the model.
 	 * @param dxdevice_context ID3D11DeviceContext to be used in the model.
 	*/
-	Model(
-		ID3D11Device* dxdevice, 
-		ID3D11DeviceContext* dxdevice_context) 
-		:	dxdevice(dxdevice),
-			dxdevice_context(dxdevice_context)
-	{ }
+	Model(ID3D11Device* dxdevice, ID3D11DeviceContext* dxdevice_context) 
+		:	m_dxdevice(dxdevice), m_dxdevice_context(dxdevice_context) { }
 
 	/**
 	 * @brief Abstract render method: must be implemented by derived classes
@@ -57,12 +53,9 @@ public:
 	*/
 	virtual ~Model()
 	{ 
-		SAFE_RELEASE(vertex_buffer);
-		SAFE_RELEASE(index_buffer);
+		SAFE_RELEASE(m_vertex_buffer);
+		SAFE_RELEASE(m_index_buffer);
 	}
 };
-
-
-
 
 #endif

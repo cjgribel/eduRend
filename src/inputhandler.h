@@ -1,5 +1,5 @@
 /**
- * @file InputHandler.h
+ * @file inputhandler.h
  * @brief Mouse & keyboard via DirectInput
  * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
  * @author Alexander Baldwin, alexander.baldwin@mah.se
@@ -36,13 +36,16 @@ public:
 	 * @see Initialize(HINSTANCE, HWND, int, int)
 	*/
 	constexpr InputHandler() noexcept 
-		: m_directInput(nullptr), m_keyboard(nullptr), m_mouse(nullptr), m_keyboardState(), m_mouseState(), m_prevMouseState(), m_screenWidth(0), m_screenHeight(0), m_mouseX(0), m_mouseY(0) {}
+		: m_direct_input(nullptr), m_keyboard(nullptr), m_mouse(nullptr), m_keyboard_state(), m_mouse_state(), m_previous_mouse_state(), m_screen_width(0), m_screen_height(0), m_mouse_x(0), m_mouse_y(0) {}
 
 	/**
 	 * @brief Destructor, does nothing, see Shutdown()
 	*/
 	~InputHandler() noexcept {};
 
+	/**
+	 * @brief Move constructor
+	*/
 	InputHandler(InputHandler&& other) noexcept;
 
 	/**
@@ -50,6 +53,9 @@ public:
 	*/
 	InputHandler(const InputHandler&) = delete;
 
+	/**
+	 * @brief Move assignment
+	*/
 	InputHandler& operator=(InputHandler&& other) noexcept;
 
 	/**
@@ -59,13 +65,13 @@ public:
 
 	/**
 	 * @brief Initialized the input handler.
-	 * @param[in] hInstance Processor Instance to use.
-	 * @param[in] hWnd Window handle to recieve inputs from.
-	 * @param[in] screenWidth Width of the window.
-	 * @param[in] screenHeight Height of the window.
+	 * @param[in] instance Processor Instance to use.
+	 * @param[in] window Window handle to recieve inputs from.
+	 * @param[in] screen_width Width of the window.
+	 * @param[in] screen_height Height of the window.
 	 * @return True if the initialization was successful.
 	*/
-	bool Initialize(HINSTANCE hInstance, HWND hWnd, int screenWidth, int screenHeight) noexcept;
+	bool Initialize(HINSTANCE instance, HWND window, int screen_width, int screen_height) noexcept;
 
 	/**
 	 * @brief Releases all input handles used by the class.
@@ -80,10 +86,10 @@ public:
 
 	/**
 	 * @brief Gets the current X and Y location of the mouse cursor.
-	 * @param[out] mouseX Will be set to the X coordinate of the mouse. 
-	 * @param[out] mouseY Will be set to the Y coordinate of the mouse. 
+	 * @param[out] mouse_x Will be set to the X coordinate of the mouse. 
+	 * @param[out] mouse_y Will be set to the Y coordinate of the mouse. 
 	*/
-	void GetMouseLocation(int& mouseX, int& mouseY) const noexcept;
+	void GetMouseLocation(int& mouse_x, int& mouse_y) const noexcept;
 
 	/**
 	 * @brief Check if the given key if currently pressed.
@@ -105,13 +111,13 @@ public:
 	LONG GetMouseDeltaY() const noexcept;
 
 private:
-	IDirectInput8* m_directInput;
+	IDirectInput8* m_direct_input;
 	IDirectInputDevice8* m_keyboard;
 	IDirectInputDevice8* m_mouse;
-	unsigned char m_keyboardState[256];
-	DIMOUSESTATE m_mouseState, m_prevMouseState;
-	int m_screenWidth, m_screenHeight;
-	int m_mouseX, m_mouseY;
+	unsigned char m_keyboard_state[256];
+	DIMOUSESTATE m_mouse_state, m_previous_mouse_state;
+	int m_screen_width, m_screen_height;
+	int m_mouse_x, m_mouse_y;
 
 	bool ReadKeyboard() noexcept;
 	bool ReadMouse() noexcept;

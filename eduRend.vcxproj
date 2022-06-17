@@ -158,37 +158,37 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="lib\stb_image.h" />
-    <ClInclude Include="src\OBJModel.h" />
-    <ClInclude Include="src\QuadModel.h" />
-    <ClInclude Include="src\RenderPass.h" />
-    <ClInclude Include="src\Camera.h" />
-    <ClInclude Include="src\Drawcall.h" />
-    <ClInclude Include="src\Model.h" />
-    <ClInclude Include="src\InputHandler.h" />
-    <ClInclude Include="src\OBJLoader.h" />
+    <ClInclude Include="src\buffers.h" />
+    <ClInclude Include="src\objmodel.h" />
+    <ClInclude Include="src\quadmodel.h" />
+    <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\drawcall.h" />
+    <ClInclude Include="src\model.h" />
+    <ClInclude Include="src\inputhandler.h" />
+    <ClInclude Include="src\objloader.h" />
     <ClInclude Include="src\parseutil.h" />
-    <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\shader.h" />
     <ClInclude Include="src\stdafx.h" />
-    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\vec\mat.h" />
     <ClInclude Include="src\vec\math.h" />
     <ClInclude Include="src\vec\vec.h" />
-    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\window.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\InputHandler.cpp" />
-    <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\OBJLoader.cpp" />
-    <ClCompile Include="src\OBJModel.cpp" />
-    <ClCompile Include="src\QuadModel.cpp" />
-    <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\inputhandler.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\objloader.cpp" />
+    <ClCompile Include="src\objmodel.cpp" />
+    <ClCompile Include="src\quadmodel.cpp" />
+    <ClCompile Include="src\scene.cpp" />
     <ClCompile Include="src\shader.c" />
-    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="src\vec\mat.cpp" />
     <ClCompile Include="src\vec\vec.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\pixel_shader.hlsl" />

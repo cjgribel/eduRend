@@ -1,5 +1,5 @@
 /**
- * @file Drawcall.h
+ * @file drawcall.h
  * @brief Contains Vertex, Material, and Drawcall definitions.
  * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
 */
@@ -35,20 +35,20 @@ struct Vertex
 */
 struct Material
 {
-	vec3f Ka = { 0,0.5,0 }; //!< Ambient colour component
-	vec3f Kd = { 0,0.5,0 }; //!< Diffuse colour component
-	vec3f Ks = { 1,1,1 }; //!< Specular colour component
+	vec3f AmbientColour		= { 0.0f, 0.5f, 0.0f }; //!< Ambient colour component
+	vec3f DiffuseColour		= { 0.0f, 0.5f, 0.0f }; //!< Diffuse colour component
+	vec3f SpecularColour	= { 1.0f, 1.0f, 1.0f }; //!< Specular colour component
     
-	std::string name; //!< Name of the Material
+	std::string Name; //!< Name of the Material
 
 	// File paths to textures
-	std::string Kd_texture_filename; //!< Diffuse texture path
-	std::string normal_texture_filename; //!< Normal texture path
+	std::string DiffuseTextureFilename; //!< Diffuse texture path
+	std::string NormalTextureFilename; //!< Normal texture path
 
 	// + more texture types (extend OBJLoader::LoadMaterials if needed)
 
 	// Device textures
-	Texture diffuse_texture; //!< Diffuse Texture
+	Texture DiffuseTexture; //!< Diffuse Texture
 	// + other texture types
 };
 
@@ -57,6 +57,9 @@ struct Material
 */
 static Material DefaultMaterial = Material();
 
+/**
+ * @brief Map between Material using name as the key.
+*/
 typedef std::unordered_map<std::string, Material> MaterialHash;
 
 /**
@@ -64,7 +67,7 @@ typedef std::unordered_map<std::string, Material> MaterialHash;
 */
 struct Triangle 
 { 
-	unsigned vi[3]; //!< Indices of the triangle
+	unsigned VertexIndices[3]; //!< Indices of the triangle
 };
 
 /**
@@ -72,7 +75,7 @@ struct Triangle
 */
 struct Quad
 { 
-	unsigned vi[4]; //!< Indices of the quad
+	unsigned VertexIndices[4]; //!< Indices of the quad
 };
 
 /**
@@ -80,18 +83,17 @@ struct Quad
 */
 struct Drawcall
 {
-    std::string group_name; //!< Name of the drawcall group
-    int mtl_index = -1; //!< Index of the material used in the drawcall
-    std::vector<Triangle> tris; //!< List of the Triangles in the drawcall
-    std::vector<Quad> quads; //!< List of the Quads in the drawcall
+    std::string GroupName; //!< Name of the drawcall group
+    int MaterialIndex = -1; //!< Index of the material used in the drawcall
+    std::vector<Triangle> Triangles; //!< List of the Triangles in the drawcall
+    std::vector<Quad> Quads; //!< List of the Quads in the drawcall
     
-	// Make sortable w.r.t. material
     /**
-     * @brief Used for sorting drawcalls based on material
+     * @brief Used for sorting Drawcalls based on material
     */
-    bool operator < (const Drawcall& dc) const
+    bool operator < (const Drawcall& other) const
     {
-        return mtl_index < dc.mtl_index;
+        return MaterialIndex < other.MaterialIndex;
     }
 };
 

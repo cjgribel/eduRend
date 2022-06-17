@@ -1,5 +1,5 @@
 /**
- * @file Window.h
+ * @file window.h
  * @author Oliver Öhrström
  * @brief Contains the class Window that handles windowing functionality for the WIN32 platform.
  * @copyright MIT License.
@@ -40,7 +40,7 @@ public:
 	/**
 	 * @brief Zero initializes the window class. For Initialization see Init(uint16_t, uint16_t)
 	*/
-	constexpr Window() noexcept : m_windowHandle(0), m_width(0), m_height(0), m_sizeChanged(false) {}
+	constexpr Window() noexcept : m_window_handle(0), m_width(0), m_height(0), m_size_changed(false) {}
 
 	/**
 	* @brief See Shutdown() for actual shutdown.
@@ -96,8 +96,8 @@ private:
 
 private:
 	static Window* s_instance;
-	HWND m_windowHandle;
+	HWND m_window_handle;
 	uint16_t m_width;
 	uint16_t m_height;
-	bool m_sizeChanged;
+	bool m_size_changed;
 };

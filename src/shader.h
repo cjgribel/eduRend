@@ -18,7 +18,7 @@ extern "C" {
 #include <stdint.h>
 
 	/*
-	* Define this if you want to use unicode characters instead of ASCII.
+	* Define this if you want to use wide characters.
 	*/
 #//define SHADER_USE_WIDECHAR 
 
@@ -92,7 +92,7 @@ extern "C" {
 	 * @brief Bind a shader to the DX11 pipeline.
 	 * @details This function does hot reloading of the shader if a ID3D11DeviceContext is supplied.
 	 *
-	 * @param[in, opt] pDevice Pointer to the active DX11 device, if this is left to NULL no reload of the shader will be done.
+	 * @param[in] pDevice Pointer to the active DX11 device, if this is left to NULL no reload of the shader will be done.
 	 * @param[in] pDeviceContext Pointer to the DX11 context that the shaders should be bound using, if NULL the shader binding will be skipped.
 	 * @param[in] pShader Pointer to the shader that should be bound.
 	*/

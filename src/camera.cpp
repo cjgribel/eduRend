@@ -26,5 +26,5 @@ mat4f Camera::WorldToViewMatrix() const noexcept
 
 mat4f Camera::ProjectionMatrix() const noexcept
 {
-	return mat4f::projection(m_vfov, m_aspect, m_zNear, m_zFar);
+	return mat4f::projection(m_vertical_fov, m_aspect_ratio, m_near_plane, m_far_plane);
 }

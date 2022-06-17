@@ -1,5 +1,5 @@
 /**
- * @file Camera.h
+ * @file camera.h
  * @brief Basic camera class
 */
 
@@ -18,31 +18,31 @@ class Camera
 public:
 	/**
 	 * @brief Creates a camera.
-	 * @param[in] vfov Vertical field of view.
-	 * @param[in] aspect Aspect ratio, calculate from screen width / sceen height.
-	 * @param[in] zNear Near plane distance.
-	 * @param[in] zFar Far plane distance, must be larger than the near plane.
+	 * @param[in] vertical_fov Vertical field of view.
+	 * @param[in] aspect_ratio Aspect ratio, calculate from screen width / sceen height.
+	 * @param[in] near_plane Near plane distance.
+	 * @param[in] far_plane Far plane distance, must be larger than the near plane.
 	*/
-	inline constexpr Camera(float vfov, float aspect, float zNear, float zFar) noexcept 
-		: m_vfov(vfov), m_aspect(aspect), m_zNear(zNear), m_zFar(zFar), m_position(0.0f) {}
+	inline constexpr Camera(float vertical_fov, float aspect_ratio, float near_plane, float far_plane) noexcept 
+		: m_vertical_fov(vertical_fov), m_aspect_ratio(aspect_ratio), m_near_plane(near_plane), m_far_plane(far_plane), m_position(0.0f) {}
 
 	/**
 	 * @brief Move the camera to a new position
-	 * @param[in] p New position for the camera
+	 * @param[in] position New position for the camera
 	*/
-	void MoveTo(const linalg::vec3f& p) noexcept;
+	void MoveTo(const linalg::vec3f& position) noexcept;
 
 	/**
 	 * @brief Move the camera along a vector
-	 * @param[in] v vector to move along
+	 * @param[in] direction Direction to move along
 	*/
-	void Move(const linalg::vec3f& v) noexcept;
+	void Move(const linalg::vec3f& direction) noexcept;
 
 	/**
 	 * @brief Changes the camera aspect ratio.
-	 * @param[in] aspect New aspect ratio, calculate with width / height
+	 * @param[in] aspect_ratio New aspect ratio, calculate with width / height
 	*/
-	inline void SetAspect(float aspect) noexcept { m_aspect = aspect; }
+	inline void SetAspect(float aspect_ratio) noexcept { m_aspect_ratio = aspect_ratio; }
 
 	/**
 	 * @brief Get the World-to-View matrix of the camera.
@@ -60,17 +60,17 @@ public:
 
 private:
 	// Aperture attributes
-	float m_vfov;
-	float m_aspect;
+	float m_vertical_fov;
+	float m_aspect_ratio;
 
 	// Clip planes in view space coordinates
-	// Evrything outside of [zNear, zFar] is clipped away on the GPU side
-	// zNear should be > 0
-	// zFar should depend on the size of the scene
+	// Evrything outside of [m_near_plane, m_far_plane] is clipped away on the GPU side
+	// m_near_plane should be > 0
+	// m_far_plane should depend on the size of the scene
 	// This range should be kept as tight as possibly to improve
 	// numerical precision in the z-buffer
-	float m_zNear;
-	float m_zFar;
+	float m_near_plane;
+	float m_far_plane;
 
 	linalg::vec3f m_position;
 };
