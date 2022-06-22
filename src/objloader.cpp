@@ -20,11 +20,11 @@ struct unwelded_triangle_t { int vi[9]; };
 struct unwelded_quad_t { int vi[12]; };
 struct unwelded_drawcall_t
 {
-	std::string mtl_name;
+	std::string material_name;
 	std::string group_name;
 	std::vector<unwelded_triangle_t> tris;
 	std::vector<unwelded_quad_t> quads;
-	int v_ofs = 0;
+	int vertex_offset = 0;
 };
 
 //
@@ -39,7 +39,7 @@ void GenerateNormals(
 	std::vector<vec3f>& vn, 
 	std::vector<unwelded_drawcall_t>& drawcalls)
 {
-	std::vector<vec3f>* v_bin = new std::vector<vec3f>[v.size()];
+	std::vector<std::vector<vec3f>> v_bin(v.size());
 
 	// bin normals from all faces to vertex bins
 	for (unwelded_drawcall_t& dc : drawcalls)
@@ -70,8 +70,6 @@ void GenerateNormals(
 
 		vn.push_back(n);
 	}
-
-	delete[] v_bin;
 }
 
 void OBJLoader::LoadMaterials(
@@ -159,22 +157,22 @@ void OBJLoader::Load(
 	bool auto_generate_normals,
 	bool triangulate)
 {
-	std::string parentdir = get_parentdir(filename);
+	std::string parentDirectory = get_parentdir(filename);
 
 	std::ifstream in(filename.c_str());
 	if (!in) throw std::runtime_error(std::string("Failed to open ") + filename);
 	std::cout << "Opened " << filename << "\n";
 
 	// raw data from obj
-	std::vector<vec3f> file_vertices, file_normals;
-	std::vector<vec2f> file_texcoords;
-	std::vector<unwelded_drawcall_t> file_drawcalls;
-	MaterialHash file_materials;
+	std::vector<vec3f> fileVertices, fileNormals;
+	std::vector<vec2f> fileTexcoords;
+	std::vector<unwelded_drawcall_t> fileDrawcalls;
+	MaterialHash fileMaterials;
 
-	std::string current_group_name;
-	unwelded_drawcall_t default_drawcall;
-	unwelded_drawcall_t* current_drawcall = &default_drawcall;
-	int last_ofs = 0; bool face_section = false; // info for skin weight mapping
+	std::string currentGroupName;
+	unwelded_drawcall_t defaultDrawcall;
+	unwelded_drawcall_t* currentDrawcall = &defaultDrawcall;
+	int lastOffset = 0; bool faceSection = false; // info for skin weight mapping
 
 	char readBuffer[256]{};
 
@@ -182,7 +180,7 @@ void OBJLoader::Load(
 	{
 		const int MaxChars = 1024;
 		float x, y, z;
-		int a[3], b[3], c[3], d[3];
+		int a[3]{}, b[3]{}, c[3]{}, d[3]{};
 		char str[MaxChars];
 
 		if (readBuffer[0] == ' ')
@@ -198,7 +196,7 @@ void OBJLoader::Load(
 			//
 			if (readBuffer[1] == 'n' && sscanf_s(readBuffer, "vn %f %f %f", &x, &y, &z) == 3)
 			{
-				file_normals.push_back(vec3f(x, y, z));
+				fileNormals.push_back(vec3f(x, y, z));
 			}
 			else if (readBuffer[1] == 't')
 			{
@@ -206,13 +204,13 @@ void OBJLoader::Load(
 				//
 				if (sscanf_s(readBuffer, "vt %f %f %f", &x, &y, &z) == 3)
 				{
-					file_texcoords.push_back(vec2f(x, y));
+					fileTexcoords.push_back(vec2f(x, y));
 				}
 				// 2D texel
 				//
 				else if (sscanf_s(readBuffer, "vt %f %f", &x, &y) == 2)
 				{
-					file_texcoords.push_back(vec2f(x, y));
+					fileTexcoords.push_back(vec2f(x, y));
 				}
 			}
 			// 3D vertex
@@ -220,19 +218,19 @@ void OBJLoader::Load(
 			else if (sscanf_s(readBuffer, "v %f %f %f", &x, &y, &z) == 3)
 			{
 				// update vertex offset and mark end to a face section
-				if (face_section)
+				if (faceSection)
 				{
-					last_ofs = (int)file_vertices.size();
-					face_section = false;
+					lastOffset = (int)fileVertices.size();
+					faceSection = false;
 				}
 
-				file_vertices.push_back(vec3f(x, y, z));
+				fileVertices.push_back(vec3f(x, y, z));
 			}
 			// 2D vertex
 			//
 			else if (sscanf_s(readBuffer, "v %f %f", &x, &y) == 2)
 			{
-				file_vertices.push_back(vec3f(x, y, 0.0f));
+				fileVertices.push_back(vec3f(x, y, 0.0f));
 			}
 
 			continue;
@@ -248,17 +246,17 @@ void OBJLoader::Load(
 			{
 				if (triangulate) 
 				{
-					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
-					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, c[1] - 1, d[1] - 1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, c[1] - 1, d[1] - 1 });
 				}
 				else
-					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
+					currentDrawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
 			}
 			// face: 3x vertex/texel/normal
 			//
 			else if (sscanf_s(readBuffer, "f %d/%d/%d %d/%d/%d %d/%d/%d", &a[0], &a[1], &a[2], &b[0], &b[1], &b[2], &c[0], &c[1], &c[2]) == 9)
 			{
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
+				currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, a[1] - 1, b[1] - 1, c[1] - 1 });
 			}
 			// face: 4x vertex
 			//
@@ -266,17 +264,17 @@ void OBJLoader::Load(
 			{
 				if (triangulate) 
 				{
-					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
-					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1 });
 				}
 				else
-					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1, -1, -1 });
+					currentDrawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, -1, -1, -1, -1 });
 			}
 			// face: 3x vertex
 			//
 			else if (sscanf_s(readBuffer, "f %d %d %d", &a[0], &b[0], &c[0]) == 3)
 			{
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
+				currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, -1, -1, -1 });
 			}
 			// face: 4x vertex/texel (triangulate)
 			//
@@ -284,17 +282,17 @@ void OBJLoader::Load(
 			{
 				if (triangulate) 
 				{
-					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
-					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, a[1] - 1, c[1] - 1, d[1] - 1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, a[1] - 1, c[1] - 1, d[1] - 1 });
 				}
 				else
-					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
+					currentDrawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, -1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1, d[1] - 1 });
 			}
 			// face: 3x vertex/texel
 			//
 			else if (sscanf_s(readBuffer, "f %d/%d %d/%d %d/%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
 			{
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
+				currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, -1, -1, -1, a[1] - 1, b[1] - 1, c[1] - 1 });
 			}
 			// face: 4x vertex//normal (triangulate)
 			//
@@ -302,17 +300,17 @@ void OBJLoader::Load(
 			{
 				if (triangulate) 
 				{
-					current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
-					current_drawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[1] - 1, c[1] - 1, d[1] - 1, -1, -1, -1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
+					currentDrawcall->tris.push_back({ a[0] - 1, c[0] - 1, d[0] - 1, a[1] - 1, c[1] - 1, d[1] - 1, -1, -1, -1 });
 				}
 				else
-					current_drawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, -1, -1, -1, -1 });
+					currentDrawcall->quads.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, d[0] - 1, a[2] - 1, b[2] - 1, c[2] - 1, d[2] - 1, -1, -1, -1, -1 });
 			}
 			// face: 3x vertex//normal
 			//
 			else if (sscanf_s(readBuffer, "f %d//%d %d//%d %d//%d", &a[0], &a[1], &b[0], &b[1], &c[0], &c[1]) == 6)
 			{
-				current_drawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
+				currentDrawcall->tris.push_back({ a[0] - 1, b[0] - 1, c[0] - 1, a[1] - 1, b[1] - 1, c[1] - 1, -1, -1, -1 });
 			}
 			continue;
 		}
@@ -321,7 +319,7 @@ void OBJLoader::Load(
 		//
 		if (sscanf_s(readBuffer, "mtllib %s", str, MaxChars) == 1)
 		{
-			LoadMaterials(parentdir, str, file_materials);
+			LoadMaterials(parentDirectory, str, fileMaterials);
 			continue;
 		}
 		// active material
@@ -329,44 +327,44 @@ void OBJLoader::Load(
 		if (sscanf_s(readBuffer, "usemtl %s", str, MaxChars) == 1)
 		{
 			unwelded_drawcall_t udc;
-			udc.mtl_name = str;
-			udc.group_name = current_group_name;
-			udc.v_ofs = last_ofs; face_section = true; // skinning: set current vertex offset and mark beginning of a face-section
-			file_drawcalls.push_back(udc);
-			current_drawcall = &file_drawcalls.back();
+			udc.material_name = str;
+			udc.group_name = currentGroupName;
+			udc.vertex_offset = lastOffset; faceSection = true; // skinning: set current vertex offset and mark beginning of a face-section
+			fileDrawcalls.push_back(udc);
+			currentDrawcall = &fileDrawcalls.back();
 			continue;
 		}
 		else if (sscanf_s(readBuffer, "g %s", str, MaxChars) == 1)
 		{
-			current_group_name = str;
+			currentGroupName = str;
 		}
 	}
 	in.close();
 
 	// use defualt drawcall if no instance of usemtl
-	if (!file_drawcalls.size())
-		file_drawcalls.push_back(default_drawcall);
+	if (!fileDrawcalls.size())
+		fileDrawcalls.push_back(defaultDrawcall);
 
-	HasNormals = (bool)file_normals.size();
-	HasTexcoords = (bool)file_texcoords.size();
+	HasNormals = (bool)fileNormals.size();
+	HasTexcoords = (bool)fileTexcoords.size();
 
 	printf("Loaded:\n\t%d vertices\n\t%d texels\n\t%d normals\n\t%d drawcalls\n",
-		(int)file_vertices.size(), (int)file_texcoords.size(), (int)file_normals.size(), (int)file_drawcalls.size());
+		(int)fileVertices.size(), (int)fileTexcoords.size(), (int)fileNormals.size(), (int)fileDrawcalls.size());
 
 #if 1
 	// auto-generate normals
 	if (!HasNormals && auto_generate_normals)
 	{
-		GenerateNormals(file_vertices, file_normals, file_drawcalls);
+		GenerateNormals(fileVertices, fileNormals, fileDrawcalls);
 		HasNormals = true;
-		printf("Auto-generated %d normals\n", (int)file_normals.size());
+		printf("Auto-generated %d normals\n", (int)fileNormals.size());
 	}
 #endif
 
 #if 1
 	printf("Welding vertex array...");
 
-	std::unordered_map<std::string, unsigned> mtl_to_index_hash;
+	std::unordered_map<std::string, unsigned> materialToIndexHash;
 
 	// hash function for int3
 	struct int3_hashfunction 
@@ -377,62 +375,62 @@ void OBJLoader::Load(
 		}
 	};
 
-	for (auto &dc : file_drawcalls)
+	for (auto &dc : fileDrawcalls)
 	{
-		Drawcall wdc;
-		wdc.GroupName = dc.group_name;
+		Drawcall drawcall;
+		drawcall.GroupName = dc.group_name;
 
-		std::unordered_map<int3, unsigned, int3_hashfunction> index3_to_index_hash;
+		std::unordered_map<int3, unsigned, int3_hashfunction> index3ToIndexHash;
 
 		// material
 		//
-		if (dc.mtl_name.size())
+		if (dc.material_name.size())
 		{
 			//
 			// is material added to main vector?
-			auto mtl_index = mtl_to_index_hash.find(dc.mtl_name);
-			if (mtl_index == mtl_to_index_hash.end())
+			auto materialIndex = materialToIndexHash.find(dc.material_name);
+			if (materialIndex == materialToIndexHash.end())
 			{
-				auto mtl = file_materials.find(dc.mtl_name);
+				auto material = fileMaterials.find(dc.material_name);
 
-				if (mtl == file_materials.end())
-					throw std::runtime_error(std::string("Error: used material ") + dc.mtl_name + " not found\n");
+				if (material == fileMaterials.end())
+					throw std::runtime_error(std::string("Error: used material ") + dc.material_name + " not found\n");
 
-				wdc.MaterialIndex = (unsigned)Materials.size();
-				mtl_to_index_hash[dc.mtl_name] = (unsigned)Materials.size();
+				drawcall.MaterialIndex = (unsigned)Materials.size();
+				materialToIndexHash[dc.material_name] = (unsigned)Materials.size();
 
-				Materials.push_back(mtl->second);
+				Materials.push_back(material->second);
 			}
 			else
-				wdc.MaterialIndex = mtl_index->second;;
+				drawcall.MaterialIndex = materialIndex->second;;
 		}
 		else
 		{
 			// mtl string is empty, use empty index
-			wdc.MaterialIndex = -1;
+			drawcall.MaterialIndex = -1;
 		}
 
 		// weld Vertices from triangles
 		//
 		for (auto &tri : dc.tris)
 		{
-			Triangle wtri;
+			Triangle wtri{};
 
 			for (int i = 0; i < 3; i++)
 			{
 				int3 i3 = { tri.vi[0 + i], tri.vi[3 + i], tri.vi[6 + i] };
 
-				auto s = index3_to_index_hash.find(i3);
-				if (s == index3_to_index_hash.end())
+				auto s = index3ToIndexHash.find(i3);
+				if (s == index3ToIndexHash.end())
 				{
 					// index-combo does not exist, create it
 					Vertex v;
-					v.Pos = file_vertices[i3.x];
-					if (i3.y > -1) v.Normal = file_normals[i3.y];
-					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];
+					v.Position = fileVertices[i3.x];
+					if (i3.y > -1) v.Normal = fileNormals[i3.y];
+					if (i3.z > -1) v.TexCoord = fileTexcoords[i3.z];
 
 					wtri.VertexIndices[i] = (unsigned)Vertices.size();
-					index3_to_index_hash[i3] = (unsigned)(Vertices.size());
+					index3ToIndexHash[i3] = (unsigned)(Vertices.size());
 
 					Vertices.push_back(v);
 				}
@@ -442,7 +440,7 @@ void OBJLoader::Load(
 					wtri.VertexIndices[i] = s->second;
 				}
 			}
-			wdc.Triangles.push_back(wtri);
+			drawcall.Triangles.push_back(wtri);
 		}
 
 #if 1
@@ -450,23 +448,23 @@ void OBJLoader::Load(
 		//
 		for (auto &quad : dc.quads)
 		{
-			Quad wquad;
+			Quad wquad{};
 
 			for (int i = 0; i < 4; i++)
 			{
 				int3 i3 = { quad.vi[0 + i], quad.vi[3 + i], quad.vi[6 + i] };
 
-				auto s = index3_to_index_hash.find(i3);
-				if (s == index3_to_index_hash.end())
+				auto s = index3ToIndexHash.find(i3);
+				if (s == index3ToIndexHash.end())
 				{
 					// index-combo does not exist, create it
 					Vertex v;
-					v.Pos = file_vertices[i3.x];
-					if (i3.y > -1) v.Normal = file_normals[i3.y];
-					if (i3.z > -1) v.TexCoord = file_texcoords[i3.z];
+					v.Position = fileVertices[i3.x];
+					if (i3.y > -1) v.Normal = fileNormals[i3.y];
+					if (i3.z > -1) v.TexCoord = fileTexcoords[i3.z];
 
 					wquad.VertexIndices[i] = (unsigned)Vertices.size();
-					index3_to_index_hash[i3] = (unsigned)(Vertices.size());
+					index3ToIndexHash[i3] = (unsigned)(Vertices.size());
 
 					Vertices.push_back(v);
 				}
@@ -476,11 +474,11 @@ void OBJLoader::Load(
 					wquad.VertexIndices[i] = s->second;
 				}
 			}
-			wdc.Quads.push_back(wquad);
+			drawcall.Quads.push_back(wquad);
 		}
 #endif
 
-		Drawcalls.push_back(wdc);
+		Drawcalls.push_back(drawcall);
 	}
 	printf("Done\n");
 
@@ -509,7 +507,7 @@ void OBJLoader::Load(
 		for (auto& tri : dc.Triangles)
 		{
 			int a = tri.VertexIndices[0], b = tri.VertexIndices[1], c = tri.VertexIndices[2];
-			vec3f v0 = Vertices[a].Pos, v1 = Vertices[b].Pos, v2 = Vertices[c].Pos;
+			vec3f v0 = Vertices[a].Position, v1 = Vertices[b].Position, v2 = Vertices[c].Position;
 
 			vec3f geo_n = linalg::normalize((v1 - v0) % (v2 - v0));
 			vec3f vert_n = Vertices[a].Normal;

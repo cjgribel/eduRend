@@ -13,7 +13,7 @@ OBJModel::OBJModel(
 	// Load and organize indices in ranges per drawcall (material)
 
 	std::vector<unsigned> indices;
-	unsigned int i_ofs = 0;
+	unsigned int indexOffset = 0;
 
 	for (auto& dc : mesh->Drawcalls)
 	{
@@ -22,39 +22,39 @@ OBJModel::OBJModel(
 			indices.insert(indices.end(), tri.VertexIndices, tri.VertexIndices + 3);
 
 		// Create a range
-		unsigned int i_size = (unsigned int)dc.Triangles.size() * 3;
-		int mtl_index = dc.MaterialIndex > -1 ? dc.MaterialIndex : -1;
-		index_ranges.push_back({ i_ofs, i_size, 0, mtl_index });
+		unsigned int indexSize = (unsigned int)dc.Triangles.size() * 3;
+		int materialIndex = dc.MaterialIndex > -1 ? dc.MaterialIndex : -1;
+		m_index_ranges.push_back({ indexOffset, indexSize, 0, materialIndex });
 
-		i_ofs = (unsigned int)indices.size();
+		indexOffset = (unsigned int)indices.size();
 	}
 
 	// Vertex array descriptor
-	D3D11_BUFFER_DESC vbufferDesc = { 0 };
-	vbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbufferDesc.CPUAccessFlags = 0;
-	vbufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vbufferDesc.MiscFlags = 0;
-	vbufferDesc.ByteWidth = (UINT)(mesh->Vertices.size() * sizeof(Vertex));
+	D3D11_BUFFER_DESC vertexbufferDesc = { 0 };
+	vertexbufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexbufferDesc.CPUAccessFlags = 0;
+	vertexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexbufferDesc.MiscFlags = 0;
+	vertexbufferDesc.ByteWidth = (UINT)(mesh->Vertices.size() * sizeof(Vertex));
 	// Data resource
-	D3D11_SUBRESOURCE_DATA vdata;
-	vdata.pSysMem = &(mesh->Vertices)[0];
+	D3D11_SUBRESOURCE_DATA vertexData = { 0 };
+	vertexData.pSysMem = &(mesh->Vertices)[0];
 	// Create vertex buffer on device using descriptor & data
-	dxdevice->CreateBuffer(&vbufferDesc, &vdata, &m_vertex_buffer);
+	dxdevice->CreateBuffer(&vertexbufferDesc, &vertexData, &m_vertex_buffer);
 	SETNAME(m_vertex_buffer, "VertexBuffer");
 
 	// Index array descriptor
-	D3D11_BUFFER_DESC ibufferDesc = { 0 };
-	ibufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibufferDesc.CPUAccessFlags = 0;
-	ibufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	ibufferDesc.MiscFlags = 0;
-	ibufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
+	D3D11_BUFFER_DESC indexbufferDesc = { 0 };
+	indexbufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexbufferDesc.CPUAccessFlags = 0;
+	indexbufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexbufferDesc.MiscFlags = 0;
+	indexbufferDesc.ByteWidth = (UINT)(indices.size() * sizeof(unsigned));
 	// Data resource
-	D3D11_SUBRESOURCE_DATA idata;
-	idata.pSysMem = &indices[0];
+	D3D11_SUBRESOURCE_DATA indexData = { 0 };
+	indexData.pSysMem = &indices[0];
 	// Create index buffer on device using descriptor & data
-	dxdevice->CreateBuffer(&ibufferDesc, &idata, &m_index_buffer);
+	dxdevice->CreateBuffer(&indexbufferDesc, &indexData, &m_index_buffer);
 	SETNAME(m_index_buffer, "IndexBuffer");
 
 	// Copy materials from mesh
@@ -62,19 +62,19 @@ OBJModel::OBJModel(
 
 	// Go through materials and load textures (if any) to device
 	std::cout << "Loading textures..." << std::endl;
-	for (auto& mtl : materials)
+	for (auto& material : m_materials)
 	{
 		HRESULT hr;
 
 		// Load Diffuse texture
 		//
-		if (mtl.DiffuseTextureFilename.size()) {
+		if (material.DiffuseTextureFilename.size()) {
 
 			hr = LoadTextureFromFile(
 				dxdevice,
-				mtl.DiffuseTextureFilename.c_str(),
-				&mtl.DiffuseTexture);
-			std::cout << "\t" << mtl.DiffuseTextureFilename
+				material.DiffuseTextureFilename.c_str(),
+				&material.DiffuseTexture);
+			std::cout << "\t" << material.DiffuseTextureFilename
 				<< (SUCCEEDED(hr) ? " - OK" : "- FAILED") << std::endl;
 		}
 
@@ -97,23 +97,23 @@ void OBJModel::Render() const
 	m_dxdevice_context->IASetIndexBuffer(m_index_buffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// Iterate Drawcalls
-	for (auto& irange : index_ranges)
+	for (auto& indexRange : m_index_ranges)
 	{
 		// Fetch material
-		const Material& mtl = materials[irange.mtl_index];
+		const Material& material = m_materials[indexRange.MaterialIndex];
 
 		// Bind diffuse texture to slot t0 of the PS
-		m_dxdevice_context->PSSetShaderResources(0, 1, &mtl.DiffuseTexture.TextureView);
+		m_dxdevice_context->PSSetShaderResources(0, 1, &material.DiffuseTexture.TextureView);
 		// + bind other textures here, e.g. a normal map, to appropriate slots
 
 		// Make the drawcall
-		m_dxdevice_context->DrawIndexed(irange.size, irange.start, 0);
+		m_dxdevice_context->DrawIndexed(indexRange.Size, indexRange.Start, 0);
 	}
 }
 
 OBJModel::~OBJModel()
 {
-	for (auto& material : materials)
+	for (auto& material : m_materials)
 	{
 		SAFE_RELEASE(material.DiffuseTexture.TextureView);
 

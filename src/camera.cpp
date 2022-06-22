@@ -2,14 +2,14 @@
 
 using namespace linalg;
 
-void Camera::MoveTo(const vec3f& p) noexcept
+void Camera::MoveTo(const vec3f& position) noexcept
 {
-	m_position = p;
+	m_position = position;
 }
 
-void Camera::Move(const vec3f& v) noexcept
+void Camera::Move(const vec3f& direction) noexcept
 {
-	m_position += v;
+	m_position += direction;
 }
 
 mat4f Camera::WorldToViewMatrix() const noexcept

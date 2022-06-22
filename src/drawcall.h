@@ -23,7 +23,7 @@ using namespace linalg;
 */
 struct Vertex
 {
-	vec3f Pos; //!< 3D coordinate of the vertex
+	vec3f Position; //!< 3D coordinate of the vertex
 	vec3f Normal; //!< Normal of the vertex
 	vec3f Tangent; //!< Tangent of the vertex
 	vec3f Binormal; //!< Binormal of the vertex

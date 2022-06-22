@@ -16,18 +16,18 @@ class OBJModel : public Model
 	// index ranges, representing Drawcalls, within an index array
 	struct IndexRange
 	{
-		unsigned int start;
-		unsigned int size;
-		unsigned ofs;
-		int mtl_index;
+		unsigned int Start;
+		unsigned int Size;
+		unsigned Offset;
+		int MaterialIndex;
 	};
 
-	std::vector<IndexRange> index_ranges;
-	std::vector<Material> materials;
+	std::vector<IndexRange> m_index_ranges;
+	std::vector<Material> m_materials;
 
 	void append_materials(const std::vector<Material>& mtl_vec)
 	{
-		materials.insert(materials.end(), mtl_vec.begin(), mtl_vec.end());
+		m_materials.insert(m_materials.end(), mtl_vec.begin(), mtl_vec.end());
 	}
 
 public:

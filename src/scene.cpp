@@ -143,14 +143,14 @@ void OurTestScene::OnWindowResized(
 void OurTestScene::InitTransformationBuffer()
 {
 	HRESULT hr;
-	D3D11_BUFFER_DESC MatrixBuffer_desc = { 0 };
-	MatrixBuffer_desc.Usage = D3D11_USAGE_DYNAMIC;
-	MatrixBuffer_desc.ByteWidth = sizeof(TransformationBuffer);
-	MatrixBuffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	MatrixBuffer_desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	MatrixBuffer_desc.MiscFlags = 0;
-	MatrixBuffer_desc.StructureByteStride = 0;
-	ASSERT(hr = m_dxdevice->CreateBuffer(&MatrixBuffer_desc, nullptr, &m_transformation_buffer));
+	D3D11_BUFFER_DESC matrixBufferDesc = { 0 };
+	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	matrixBufferDesc.ByteWidth = sizeof(TransformationBuffer);
+	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	matrixBufferDesc.MiscFlags = 0;
+	matrixBufferDesc.StructureByteStride = 0;
+	ASSERT(hr = m_dxdevice->CreateBuffer(&matrixBufferDesc, nullptr, &m_transformation_buffer));
 }
 
 void OurTestScene::UpdateTransformationBuffer(
@@ -161,9 +161,9 @@ void OurTestScene::UpdateTransformationBuffer(
 	// Map the resource buffer, obtain a pointer and then write our matrices to it
 	D3D11_MAPPED_SUBRESOURCE resource;
 	m_dxdevice_context->Map(m_transformation_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
-	TransformationBuffer* matrix_buffer_ = (TransformationBuffer*)resource.pData;
-	matrix_buffer_->ModelToWorldMatrix = ModelToWorldMatrix;
-	matrix_buffer_->WorldToViewMatrix = WorldToViewMatrix;
-	matrix_buffer_->ProjectionMatrix = ProjectionMatrix;
+	TransformationBuffer* matrixBuffer = (TransformationBuffer*)resource.pData;
+	matrixBuffer->ModelToWorldMatrix = ModelToWorldMatrix;
+	matrixBuffer->WorldToViewMatrix = WorldToViewMatrix;
+	matrixBuffer->ProjectionMatrix = ProjectionMatrix;
 	m_dxdevice_context->Unmap(m_transformation_buffer, 0);
 }

@@ -127,27 +127,27 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 				initialWinWidth,
 				initialWinHeight);
 
-			__int64 cps = 0;
+			int64_t cps = 0;
 			QueryPerformanceFrequency((LARGE_INTEGER*)&cps);
 			double ss = 1.0f / (float)cps;
 
-			__int64 start = 0;
+			int64_t start = 0;
 			QueryPerformanceCounter((LARGE_INTEGER*)&start);
 
 			scene->Init();
 
-			__int64 end = 0;
+			int64_t end = 0;
 			QueryPerformanceCounter((LARGE_INTEGER*)&end);
 			double dt = (end - start) * ss;
 			printf("Scene loading took %lfs\n", dt);
 		}
 	}
 
-	__int64 cntsPerSec = 0;
+	int64_t cntsPerSec = 0;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&cntsPerSec);
 	float secsPerCnt = 1.0f / (float)cntsPerSec;
 
-	__int64 prevTimeStamp = 0;
+	int64_t prevTimeStamp = 0;
 	QueryPerformanceCounter((LARGE_INTEGER*)&prevTimeStamp);
 
 	
@@ -161,13 +161,13 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 			WinResize();
 		}
 
-		__int64 currTimeStamp = 0;
+		int64_t currTimeStamp = 0;
 		QueryPerformanceCounter((LARGE_INTEGER*)&currTimeStamp);
-		const float dt = (currTimeStamp - prevTimeStamp) * secsPerCnt;
+		const float deltaTime = (currTimeStamp - prevTimeStamp) * secsPerCnt;
 		inputHandler.Update();
 		
-		Update(dt);
-		Render(dt);
+		Update(deltaTime);
+		Render(deltaTime);
 
 		prevTimeStamp = currTimeStamp;
 	}
@@ -188,6 +188,7 @@ void WinResize()
 
 	printf("window resized to %i x %i\n", size.x, size.y);
 
+	// With no swapchain there is nothing to resize
 	if (!swapChain) return;
 
 	deviceContext->OMSetRenderTargets(0, 0, 0);
@@ -197,24 +198,13 @@ void WinResize()
 	HRESULT hr;
 	// Preserve the existing buffer count and format.
 	// Automatically choose the width and height to match the client rect for HWNDs.
-	ASSERT(hr = swapChain->ResizeBuffers(
-		0,
-		0,
-		0,
-		DXGI_FORMAT_UNKNOWN,
-		0));
+	ASSERT(hr = swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 
 	// Get buffer and create a render-target-view.
 	ID3D11Texture2D* pBuffer = nullptr;
-	ASSERT(hr = swapChain->GetBuffer(
-		0,
-		__uuidof(ID3D11Texture2D),
-		(void**)&pBuffer));
+	ASSERT(hr = swapChain->GetBuffer(0, IID_PPV_ARGS(&pBuffer)));
 
-	ASSERT(hr = device->CreateRenderTargetView(
-		pBuffer, 
-		NULL, 
-		&renderTargetView));
+	ASSERT(hr = device->CreateRenderTargetView(pBuffer, nullptr, &renderTargetView));
 	SETNAME(renderTargetView, "RenderTargetView");
 
 	pBuffer->Release();
@@ -223,13 +213,10 @@ void WinResize()
 
 	CreateDepthStencilView(size.x, size.y);
 	SETNAME(renderTargetView, "RenderTargetView");
-	deviceContext->OMSetRenderTargets(
-		1, 
-		&renderTargetView, 
-		depthStencilView);
+	deviceContext->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
 
 	// Set up the viewport.
-	D3D11_VIEWPORT vp;
+	D3D11_VIEWPORT vp{};
 	vp.Width = (float)size.x;
 	vp.Height = (float)size.y;
 	vp.MinDepth = 0.0f;
@@ -253,8 +240,7 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 		D3D_DRIVER_TYPE_REFERENCE 
 	};
 
-	DXGI_SWAP_CHAIN_DESC sd;
-	memset(&sd, 0, sizeof(sd));
+	DXGI_SWAP_CHAIN_DESC sd{};
 	sd.BufferCount = 1;
 	sd.BufferDesc.Width = width;
 	sd.BufferDesc.Height = height;
@@ -304,7 +290,7 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 
 void InitRasterizerState()
 {
-	D3D11_RASTERIZER_DESC rasterizerState;
+	D3D11_RASTERIZER_DESC rasterizerState{};
 	rasterizerState.FillMode = D3D11_FILL_SOLID;
 	rasterizerState.CullMode = D3D11_CULL_BACK;
 	rasterizerState.FrontCounterClockwise = true;
@@ -325,8 +311,9 @@ HRESULT CreateRenderTargetView()
 {
 	HRESULT hr = S_OK;
 	// Create a render target view
-	ID3D11Texture2D* pBackBuffer;
-	if(SUCCEEDED(hr = swapChain->GetBuffer( 0, __uuidof( ID3D11Texture2D ), (void**)&pBackBuffer)))
+	ID3D11Texture2D* pBackBuffer = nullptr;
+	hr = swapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	if (SUCCEEDED(hr))
 	{
 		hr = device->CreateRenderTargetView( pBackBuffer, nullptr, &renderTargetView );
 		SETNAME(renderTargetView, "RenderTargetView");
@@ -340,7 +327,7 @@ HRESULT CreateDepthStencilView(int width, int height)
 	HRESULT hr = S_OK;
 
 	// Create depth stencil texture
-	D3D11_TEXTURE2D_DESC descDepth;
+	D3D11_TEXTURE2D_DESC descDepth{};
 	descDepth.Width = width;
 	descDepth.Height = height;
 	descDepth.MipLevels = 1;
@@ -357,8 +344,7 @@ HRESULT CreateDepthStencilView(int width, int height)
 		return hr;
 	SETNAME(depthStencil, "DepthStencil");
 	// Create the depth stencil view
-	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-	ZeroMemory(&descDSV, sizeof(descDSV));
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV{};
 	descDSV.Format = descDepth.Format;
 	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	descDSV.Texture2D.MipSlice = 0;
@@ -370,7 +356,7 @@ HRESULT CreateDepthStencilView(int width, int height)
 void SetViewport(int width, int height)
 {
 	// Setup the viewport
-	D3D11_VIEWPORT vp;
+	D3D11_VIEWPORT vp{};
 	vp.Width = (float)width;
 	vp.Height = (float)height;
 	vp.MinDepth = 0.0f;
@@ -394,6 +380,7 @@ HRESULT Render(float deltaTime)
 
 	// Clear color in RGBA
 	static float ClearColor[4] = { 0, 0, 0, 1 };
+
 	// Clear back buffer
 	deviceContext->ClearRenderTargetView( renderTargetView, ClearColor );
 	
@@ -406,11 +393,11 @@ HRESULT Render(float deltaTime)
 	// Bind shaders
 	bind_shader(device, deviceContext, vertexShader);
 	bind_shader(device, deviceContext, pixelShader);
-	//g_DeviceContext->VSSetShader(g_VertexShader, nullptr, 0);
+
+	// These shader types are not used
 	deviceContext->HSSetShader(nullptr, nullptr, 0);
 	deviceContext->DSSetShader(nullptr, nullptr, 0);
 	deviceContext->GSSetShader(nullptr, nullptr, 0);
-	//g_DeviceContext->PSSetShader(g_PixelShader, nullptr, 0);
 	
 	// Time for the current scene to render
 	scene->Render();

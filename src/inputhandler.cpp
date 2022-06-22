@@ -123,17 +123,13 @@ bool InputHandler::Update() noexcept
 
 void InputHandler::GetMouseLocation(int& mouseX, int& mouseY) const noexcept
 {
-	mouseX = this->m_mouse_x;
-	mouseY = this->m_mouse_y;
+	mouseX = m_mouse_x;
+	mouseY = m_mouse_y;
 }
 
 bool InputHandler::IsKeyPressed(Keys key) const noexcept
 {
-	if (m_keyboard_state[(int)key] & 0x80)
-	{
-		return true;
-	}
-	return false;
+	return m_keyboard_state[(int)key] & 0x80;
 }
 
 LONG InputHandler::GetMouseDeltaX() const noexcept
