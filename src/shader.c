@@ -4,6 +4,7 @@
 #pragma warning( push )
 #pragma warning( disable : 4703)
 #pragma warning( disable : 4701)
+#pragma warning( disable : 5105)
 #endif
 
 #include <stdlib.h>

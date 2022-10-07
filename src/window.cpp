@@ -75,8 +75,7 @@ bool Window::Init(uint16_t width, uint16_t height) noexcept
 	// Adjust and create window
 	RECT rc = { 0, 0, (LONG)m_width, (LONG)m_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-
-	if (!(m_window_handle = CreateWindow(
+	m_window_handle = CreateWindow(
 		L"DA307A_eduRend",
 		L"DA307A - eduRend",
 		WS_OVERLAPPEDWINDOW,
@@ -87,7 +86,8 @@ bool Window::Init(uint16_t width, uint16_t height) noexcept
 		nullptr,
 		nullptr,
 		wcex.hInstance,
-		nullptr)))
+		nullptr);
+	if (!m_window_handle)
 	{
 		OutputDebugString(L"Window creation failed");
 		return false;

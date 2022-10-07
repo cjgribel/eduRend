@@ -6,8 +6,10 @@
 
 #include "Texture.h"
 
+#pragma warning (push, 1)
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "stb_image.h"
+#pragma warning (pop)
 
 HRESULT LoadTextureFromFile(
     ID3D11Device* dxdevice,
@@ -70,7 +72,7 @@ HRESULT LoadTextureFromFile(
     desc.MiscFlags = miscFlags;
 
     ID3D11Texture2D* pTexture = NULL;
-    D3D11_SUBRESOURCE_DATA subResource;
+    D3D11_SUBRESOURCE_DATA subResource{};
     subResource.pSysMem = imageData;
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
@@ -100,7 +102,7 @@ HRESULT LoadTextureFromFile(
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 
     srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = mipLevelsSRV;
+    srvDesc.Texture2D.MipLevels = (UINT)mipLevelsSRV;
     if (FAILED(hr = dxdevice->CreateShaderResourceView(
         pTexture,
         &srvDesc,
@@ -134,7 +136,7 @@ HRESULT LoadCubeTextureFromFile(
     stbi_set_flip_vertically_on_load(1);
     int imageWidth = 0;
     int imageHeight = 0;
-    unsigned char* imageData[6];
+    unsigned char* imageData[6]{};
     for (int i = 0; i < 6; i++)
     {
         imageData[i] = stbi_load(filenames[i], &imageWidth, &imageHeight, NULL, 4);
@@ -146,8 +148,8 @@ HRESULT LoadCubeTextureFromFile(
 
     // Create texture
     D3D11_TEXTURE2D_DESC desc = {};
-    desc.Width = imageWidth;
-    desc.Height = imageHeight;
+    desc.Width = (UINT)imageWidth;
+    desc.Height = (UINT)imageHeight;
     desc.MipLevels = 1;
     desc.ArraySize = 6;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -158,11 +160,11 @@ HRESULT LoadCubeTextureFromFile(
     desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
     ID3D11Texture2D* pTexture = NULL;
-    D3D11_SUBRESOURCE_DATA subResource[6];
+    D3D11_SUBRESOURCE_DATA subResource[6]{};
     for (int i = 0; i < 6; i++)
     {
         subResource[i].pSysMem = imageData[i];
-        subResource[i].SysMemPitch = imageWidth * 4;
+        subResource[i].SysMemPitch = (UINT)imageWidth * 4;
         subResource[i].SysMemSlicePitch = 0;
     }
     if (FAILED(hr = dxdevice->CreateTexture2D(&desc, &subResource[0], &pTexture)))

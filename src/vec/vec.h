@@ -288,11 +288,11 @@ namespace linalg
         
         vec4<T> xyz1() const;
         
-        void set(const T &x, const T &y, const T &z)
+        void set(const T &new_x, const T &new_y, const T &new_z)
         {
-            this->x = x;
-            this->y = y;
-            this->z = z;
+            this->x = new_x;
+            this->y = new_y;
+            this->z = new_z;
         }
         
         T dot(const vec3<T> &u) const

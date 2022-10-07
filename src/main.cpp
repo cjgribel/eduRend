@@ -138,7 +138,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 
 			int64_t end = 0;
 			QueryPerformanceCounter((LARGE_INTEGER*)&end);
-			double dt = (end - start) * ss;
+			double dt = ((double)end - start) * ss;
 			printf("Scene loading took %lfs\n", dt);
 		}
 	}
@@ -242,8 +242,8 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 
 	DXGI_SWAP_CHAIN_DESC sd{};
 	sd.BufferCount = 1;
-	sd.BufferDesc.Width = width;
-	sd.BufferDesc.Height = height;
+	sd.BufferDesc.Width = (UINT)width;
+	sd.BufferDesc.Height = (UINT)height;
 	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	sd.BufferDesc.RefreshRate.Numerator = 60;
 	sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -328,8 +328,8 @@ HRESULT CreateDepthStencilView(int width, int height)
 
 	// Create depth stencil texture
 	D3D11_TEXTURE2D_DESC descDepth{};
-	descDepth.Width = width;
-	descDepth.Height = height;
+	descDepth.Width = (UINT)width;
+	descDepth.Height = (UINT)height;
 	descDepth.MipLevels = 1;
 	descDepth.ArraySize = 1;
 	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
