@@ -47,7 +47,7 @@ inline float rnd(const float &min, const float &max) { return min + (float)rand(
 
 /**
  * @brief Linearly interpolates between a and b
- * @details Formula used is *(1.0f-x) + b*x
+ * @details Formula used is a*(1.0f-x) + b*x
  * @tparam T Number representation to use.
  * @param a Start value.
  * @param b Target value.
