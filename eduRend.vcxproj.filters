@@ -17,6 +17,9 @@
       <UniqueIdentifier>{bdc29781-2bdb-498d-83f5-a7e72559dfa1}</UniqueIdentifier>
       <Extensions>ps;vs</Extensions>
     </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{381d8b1c-3984-42f0-a7fc-94f3ec529e22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h">
@@ -55,9 +58,6 @@
     <ClInclude Include="src\vec\vec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lib\stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,6 +72,9 @@
     </ClInclude>
     <ClInclude Include="src\buffers.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\stb_image.h">
+      <Filter>Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
