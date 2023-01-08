@@ -1,6 +1,7 @@
 #ifndef _STDAFX__H
 #define _STDAFX__H
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <D3D11.h>
 #include <d3dCompiler.h>
@@ -8,15 +9,13 @@
 
 #include <string>
 #include <fstream>
-//#include "WICTextureLoader.h"
-//#include "DDSTextureLoader.h"
 
 #define SAFE_RELEASE(x) if( x ) { (x)->Release(); (x) = nullptr; }
 #define SAFE_DELETE(x) if( x ) { delete(x); (x) = nullptr; }
 #define SAFE_DELETE_ARRAY(x) if( x ) { delete[](x); (x) = nullptr; }
-#define PI (3.14159265358979323846f)
+constexpr auto PI = (3.14159265358979323846f);
 
-#define ASSERT(x) if(FAILED(x)) { throw std::runtime_error("ASSERT failed\n"); }
+#define ASSERT(x) if(FAILED(x)) { __debugbreak(); }
 
 #ifdef _DEBUG
 #define SETNAME(object, name) object->SetPrivateData(WKPDID_D3DDebugObjectName, sizeof(name) - 1, name)

@@ -3,6 +3,8 @@
 #ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4703)
+#pragma warning( disable : 4701)
+#pragma warning( disable : 5105)
 #endif
 
 #include <stdlib.h>
@@ -10,6 +12,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <D3D11.h>
 #include <d3dCompiler.h>
 
 typedef struct shader_data
@@ -29,7 +32,7 @@ typedef struct shader_data
 	FILETIME last_write;
 } shader_data;
 
-static BOOL load_file(const SCHAR* pPath, char** pData, DWORD* pSize, FILETIME* pLastWrite)
+static BOOL load_file(const SCHAR* pPath, char** pData, uint32_t* pSize, FILETIME* pLastWrite)
 {
 	BOOL result = { 0 };
 	FILETIME lastWrite = { 0 };
@@ -53,7 +56,7 @@ static BOOL load_file(const SCHAR* pPath, char** pData, DWORD* pSize, FILETIME* 
 	if (pData && pSize)
 	{
 		fileSize = GetFileSize(file, NULL);
-		*pSize = fileSize;
+		*pSize = (uint32_t)fileSize;
 		buffer = (char*)malloc(fileSize);
 		if (buffer == NULL) goto error;
 
@@ -77,7 +80,7 @@ static ID3DBlob* compile_shader(SHADER_TYPE type, const char* pCode, uint32_t co
 	ID3DBlob* shader;
 	ID3DBlob* error;
 
-	HRESULT hr = D3DCompile(pCode, codeSize, NULL, NULL, NULL, pEntrypoint,
+	D3DCompile(pCode, codeSize, NULL, NULL, NULL, pEntrypoint,
 		type == SHADER_VERTEX ? "vs_5_0" : "ps_5_0",
 		D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_IEEE_STRICTNESS,
 		0,
@@ -109,7 +112,7 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 {
 	SHADER_RESULT result = { 0 };
 	FILETIME lastWrite = { 0 };
-	DWORD fileSize = { 0 };
+	uint32_t fileSize = { 0 };
 	char* codeBuffer = { 0 };
 
 	if (type != SHADER_PIXEL && type != SHADER_VERTEX)
@@ -126,7 +129,8 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 		goto error;
 	}
 
-	ID3DBlob* shaderByteCode = compile_shader(type, codeBuffer, fileSize, pEntrypoint);
+	ID3DBlob* shaderByteCode = {0};
+	shaderByteCode = compile_shader(type, codeBuffer, fileSize, pEntrypoint);
 
 	free(codeBuffer);
 
@@ -141,7 +145,8 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 	size_t entrypointSize = strlen(pEntrypoint) + 1;
 	size_t totalSize = structureSize + pathSize + entrypointSize;
 
-	shader_data* data = (shader_data*)malloc(totalSize);
+	shader_data* data = {0};
+	data = (shader_data*)malloc(totalSize);
 	if (data == NULL)
 	{
 		result = SR_OUT_OF_MEMORY;
@@ -192,19 +197,19 @@ SHADER_RESULT create_shader(ID3D11Device* pDevice, const SCHAR* pPath, const cha
 error:
 	switch (result)
 	{
-	case SR_SHADER_LINKING_ERROR:
-	{
-		if (type == SHADER_VERTEX)
-			data->input_layout->lpVtbl->Release(data->input_layout);
-	}
-	case SR_INVALID_INPUT_LAYOUT:
-	{
-		free(data);
-	}
-	case SR_OUT_OF_MEMORY:
-	{
-		shaderByteCode->lpVtbl->Release(shaderByteCode);
-	}
+		case SR_SHADER_LINKING_ERROR:
+		{
+			if (type == SHADER_VERTEX)
+				data->input_layout->lpVtbl->Release(data->input_layout);
+		}
+		case SR_INVALID_INPUT_LAYOUT:
+		{
+			free(data);
+		}
+		case SR_OUT_OF_MEMORY:
+		{
+			shaderByteCode->lpVtbl->Release(shaderByteCode);
+		}
 	}
 	return result;
 }

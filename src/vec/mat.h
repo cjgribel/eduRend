@@ -1,9 +1,8 @@
-
-//
-// 2x2, 3x3 & 4x4 Matrix lib
-//
-// Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file mat.h
+ * @brief 2x2, 3x3 & 4x4 Matrix lib
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef MAT_H
@@ -15,39 +14,42 @@
 
 namespace linalg
 {
-    
-	//
-    // 2D column-major matrix
-    //
-    // | m11 m12 |
-    // | m21 m22 |
-    // 
+    /**
+     * @brief 2D column-major matrix
+     * @tparam T Number representation to use
+     * 
+     @verbatim
+     Column order
+     | m11 m12 |
+     | m21 m22 |
+     @endverbatim
+    */
     template<class T> class mat2
     {
     public:
-        union {
+        union 
+        {
             T array[4];
             T mat[2][2];
             struct { T m11, m21, m12, m22; };
             struct { vec2<T> col[2]; };
         };
         
-        mat2()
-        {
-            
-        }
+        constexpr mat2(){ }
         
-        //
-        // constructor: from elements
-        //
-        mat2(const T& m11, const T& m12, const T& m21, const T& m22) : m11(m11), m12(m12), m21(m21), m22(m22)
-        {
-            
-        }
+        /**
+         * @brief Constructor: from elements.
+         * @param m11 Element [1, 1]
+         * @param m12 Element [1, 2]
+         * @param m21 Element [2, 1]
+         * @param m22 Element [2, 2]
+        */
+        constexpr mat2(const T& m11, const T& m12, const T& m21, const T& m22) : m11(m11), m12(m12), m21(m21), m22(m22) {}
         
-        //
-        // constructor: rotation matrix
-        //
+        /**
+         * @brief Constructor: rotation matrix
+         * @param rad Rotation angle
+        */
         mat2(const T& rad)
         {
             T c = cos(rad);
@@ -56,9 +58,11 @@ namespace linalg
             m21 = s; m22 = c;
         }
         
-        //
-        // constructor: scaling matrix
-        //
+        /**
+         * @brief Constructor: scaling matrix
+         * @param scale_x Scale along x-axis
+         * @param scale_y Scale along y-axis
+        */
         mat2(const T& scale_x, const T& scale_y)
         {
             m11 = scale_x;	m12 = 0.0;
@@ -87,9 +91,17 @@ namespace linalg
     };
     
     
-    //
-    // 3D column-major matrix
-    //
+    /**
+     * @brief 3D column-major matrix
+     * @tparam T Number representation to use
+     *
+     @verbatim
+     Column order
+     | m11 m12 m13|
+     | m21 m22 m23|
+     | m31 m32 m33|
+     @endverbatim
+    */
     template<class T> class mat3
     {
     public:
@@ -279,9 +291,14 @@ namespace linalg
         }
     };
     
-	//
-	// thread unsafe debug print
-	//
+    /**
+     * @brief Prints a mat3 to the output given in out.
+     * @tparam T Number type of the matrix
+     * @param out ostream to send the printout.
+     * @param m mat3 to print,
+     * @note This function does not guarantee thread safety of the print.
+     * @return out, used for chaining of operators.
+    */
     template<class T>
     inline std::ostream& operator<< (std::ostream &out, const mat3<T> &m)
     {
@@ -291,9 +308,18 @@ namespace linalg
         return out;
     }
     
-	//
-	// 4D column-major matrix
-	//
+    /**
+     * @brief 4D column-major matrix
+     * @tparam T Number representation to use
+     *
+     @verbatim
+     Column order
+     | m11 m12 m13 m14|
+     | m21 m22 m23 m24|
+     | m31 m32 m33 m34|
+     | m41 m42 m43 m44|
+     @endverbatim
+    */
     template<class T> class mat4
     {
     public:
@@ -639,9 +665,14 @@ namespace linalg
         
     };
     
-	//
-	// thread unsafe debug print
-	//
+    /**
+     * @brief Prints a mat4 to the output given in out.
+     * @tparam T Number type of the matrix
+     * @param out ostream to send the printout.
+     * @param m mat4 to print,
+     * @note This function does not guarantee thread safety of the print.
+     * @return out, used for chaining of operators.
+    */
     template<class T>
     inline std::ostream& operator<< (std::ostream &out, const mat4<T> &m)
     {
@@ -651,6 +682,12 @@ namespace linalg
         return out;
     }
 
+    /**
+     * @brief Transposes a 4x4 matrix.
+     * @tparam T Template argument of the mat4
+     * @param m Input matrix.
+     * @return Transposed version of m
+    */
     template<class T>
     inline mat4<T> transpose(const mat4<T>& m)
     {
@@ -659,19 +696,16 @@ namespace linalg
 		return n;
     }
     
-    typedef mat2<float> mat2f;
-    typedef mat3<float> mat3f;
-    typedef mat4<float> mat4f;
+    typedef mat2<float> mat2f; //!< Type definition for a 2x2 float matrix
+    typedef mat3<float> mat3f; //!< Type definition for a 3x3 float matrix
+    typedef mat4<float> mat4f; //!< Type definition for a 4x4 float matrix
     
-    //
-    // compile-time instances
-    //
-    const mat2f mat2f_zero = mat2f(0.0f);
-    const mat3f mat3f_zero = mat3f(0.0f);
-    const mat4f mat4f_zero = mat4f(0.0f);
-    const mat2f mat2f_identity = mat2f(1.0f);
-    const mat3f mat3f_identity = mat3f(1.0f);
-    const mat4f mat4f_identity = mat4f(1.0f);
+    const mat2f mat2f_zero = mat2f(0.0f); //!< Compile-time 2x2 zero matrix
+    const mat3f mat3f_zero = mat3f(0.0f); //!< Compile-time 3x3 zero matrix
+    const mat4f mat4f_zero = mat4f(0.0f); //!< Compile-time 4x4 zero matrix
+    const mat2f mat2f_identity = mat2f(1.0f); //!< Compile-time 2x2 identity matrix
+    const mat3f mat3f_identity = mat3f(1.0f); //!< Compile-time 3x3 identity matrix
+    const mat4f mat4f_identity = mat4f(1.0f); //!< Compile-time 4x4 identity matrix
 }
 
 #endif /* MAT_H */

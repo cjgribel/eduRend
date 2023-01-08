@@ -1,9 +1,8 @@
-
-//
-//	2D, 3D & 4D Vector lib
-//
-//  Carl Johan Gribel 2016-2021, cjgribel@gmail.com
-//
+/**
+ * @file vec.h
+ * @brief 2D, 3D & 4D Vector lib
+ * @author Carl Johan Gribel 2016-2021, cjgribel@gmail.com
+*/
 
 #pragma once
 #ifndef VEC_H
@@ -15,10 +14,12 @@
 
 namespace linalg
 {
-    //
-    // 2D vector
-    //
-    template<class T> class vec2
+    /**
+     * @brief 2D vector
+     * @tparam T Number representation to use
+    */
+    template<class T> 
+    class vec2
     {
     public:
         union
@@ -27,147 +28,228 @@ namespace linalg
             struct { T x, y; };
         };
         
-        vec2()
-        {
-            x = 0.0f;
-            y = 0.0f;
-        }
+        /**
+         * @brief Constructor: default zero initialization
+        */
+        constexpr vec2() : vec2(0.0f) {}
+
+        /**
+         * @brief Constuctor: value initialization.
+         * @param value Value to set each element to.
+        */
+        constexpr vec2(const T &value) : vec2(value, value) {}
         
-        vec2(const T& x, const T& y)
-        {
-            this->x = x;
-            this->y = y;
-        }
-        
-        void set(const T &x, const T &y)
-        {
-            this->x = x;
-            this->y = y;
-        }
-        
-        float dot(const vec2<T> &u) const
+        /**
+         * @brief Constructor: element initialization.
+         * @param x Value for vec2::x
+         * @param y Value for vec2::y
+        */
+        constexpr vec2(const T& x, const T& y) : x(x), y(y) {}
+                
+        /**
+         * @brief Calculates the dot procuct between this and u
+         * @param u Second vector in the dot product
+         * @return this.x * u.x + this.y + u.y
+        */
+        constexpr float dot(const vec2<T> &u) const
         {
             return x*u.x + y*u.y;
         }
         
-        //
-        // 2-norm: |u| = sqrt(u.u)
-        //
-        float norm2()
+        /**
+         * @brief Gets the length of the vector
+         * @details |u| = sqrt(u.u)
+         * @return length of the vector.
+        */
+        constexpr float length() const
         {
-            return sqrt(x*x + y*y);
+            return sqrt(x * x + y * y);
         }
         
-        //
-        // normalization: u/|u| = u/(u.u)
-        //
-        vec2<T>& normalize()
+        /**
+         * @brief Gets the squared length of the vector
+         * @return squared length of the vector.
+        */
+        constexpr float length_squared() const
         {
-            T normSquared = x*x + y*y;
+            return x * x + y * y;
+        }
+
+        /**
+         * @brief Normalize the vector.
+         * @details Formula is u/|u| = u/(u.u)
+         * @return reference to this
+        */
+        constexpr vec2<T>& normalize()
+        {
+            T lengthSquared = length_squared();
             
-            if( normSquared < 1e-8 )
-                set(0.0, 0.0);
+            if (lengthSquared < 1e-8)
+            {
+                *this = vec2<T>(0.0);
+            }
             else
             {
-                T inormSquared = 1.0 / sqrt(normSquared);
-                set(x * inormSquared, y * inormSquared);
+                T inormSquared = 1.0 / sqrt(lengthSquared);
+                *this = vec2<T>(x * inormSquared, y * inormSquared);
             }
             return *this;
         }
         
-        //
-        // project on v: v * u.v/v.v
-        //
-        vec2<T> project(vec2<T> &v) const
+        /**
+         * @brief Project on v: v * u.v/v.v
+        */
+        constexpr vec2<T> project(vec2<T> &v) const
         {
             T vnormSquared = v.x*v.x + v.y*v.y;
             return v * (this->dot(v) / vnormSquared);
         }
         
-        //
-        // angle to a second vector
-        //
-        float angle(vec2<T> &v)
+        /**
+         * @brief Gets the angle to v
+         * @param v Target for the calculation
+         * @return Angle between this and v
+        */
+        constexpr float angle(vec2<T> &v)
         {
             vec2<T>	un = vec2f(*this).normalize(),
             vn = vec2f(v).normalize();
             return acos( un.dot(vn) );
         }
         
-        vec2<T>& operator =(const vec2<T> &v)
+        /**
+         * @brief Assignment operation
+         * @param v New values for the vector
+         * @return Reference to this
+        */
+        constexpr vec2<T>& operator =(const vec2<T> &v)
         {
             x = v.x;
             y = v.y;
             return *this;
         }
         
-        vec2<T>& operator +=(const vec2<T> &v)
+        /**
+         * @brief Element addition
+         * @param v Vector to add
+         * @return Reference to this
+        */
+        constexpr vec2<T>& operator +=(const vec2<T> &v)
         {
             x += v.x;
             y += v.y;
             return *this;
         }
         
-        vec2<T>& operator -=(const vec2<T> &v)
+        /**
+         * @brief Element subtraction
+         * @param v Vector to subtract
+         * @return Reference to this
+        */
+        constexpr vec2<T>& operator -=(const vec2<T> &v)
         {
             x -= v.x;
             y -= v.y;
             return *this;
         }
         
-        vec2<T>& operator *=(const T &s)
+        /**
+         * @brief Element multiplication
+         * @param s Scalar value to multiply
+         * @return Reference to this
+        */
+        constexpr vec2<T>& operator *=(const T &s)
         {
             x *= s;
             y *= s;
             return *this;
         }
         
-        vec2<T>& operator *=(const vec2<T> &v)
+        /**
+        * @brief Element multiplication
+        * @param v Vector to multiply
+        * @return Reference to this
+       */
+        constexpr vec2<T>& operator *=(const vec2<T> &v)
         {
             x *= v.x;
             y *= v.y;
             return *this;
         }
         
-        vec2<T>& operator /=(const T &v)
+        /**
+        * @brief Element devision
+        * @param v Vector to divide
+        * @return Reference to this
+       */
+        constexpr vec2<T>& operator /=(const T &v)
         {
             x /= v;
             y /= v;
             return *this;
         }
         
-        vec2<T> operator -() const
+        /**
+         * @brief Invers operator
+         * @return New vector representing the inverse of this.
+        */
+        constexpr vec2<T> operator -() const
         {
             return vec2<T>(-x, -y);
         }
         
-        vec2<T> operator *(const T &s) const
+        /**
+         * @brief Multiplication
+         * @param s Right side value
+         * @return Product of this * s
+        */
+        constexpr vec2<T> operator *(const T &s) const
         {
             return vec2<T>(x * s, y * s);
         }
 
-        vec2<T> operator *(const vec2<T> &v) const
+        /**
+         * @brief Multiplication
+         * @param v Right side value
+         * @return Product of this * v
+        */
+        constexpr vec2<T> operator *(const vec2<T> &v) const
         {
             return vec2<T>(x * v.x, y * v.y);
         }
         
-        vec2<T> operator /(const T &v) const
+        /**
+         * @brief Division
+         * @param v Right side value
+         * @return Quotient of this / v
+        */
+        constexpr vec2<T> operator /(const T &v) const
         {
             T iv = 1.0 / v;
             return vec2(x * iv, y * iv);
         }
         
-        vec2<T> operator +(const vec2<T> &v) const
+        /**
+         * @brief Addition
+         * @param v Right side value
+         * @return Sum of this + v
+        */
+        constexpr vec2<T> operator +(const vec2<T> &v) const
         {
             return vec2<T>(x + v.x, y + v.y);
         }
         
-        vec2<T> operator -(const vec2<T> &v) const
+        /**
+         * @brief Subtraction
+         * @param v Right side value
+         * @return Difference of this - v
+        */
+        constexpr vec2<T> operator -(const vec2<T> &v) const
         {
             return vec2<T>(x - v.x, y - v.y);
         }
         
-        T operator %(const vec2<T> &v) const
+        constexpr T operator %(const vec2<T> &v) const
         {
             return x * v.y - y * v.x;
         }
@@ -183,9 +265,10 @@ namespace linalg
     template<class T> class vec4;
     template<class T> class mat3;
     
-    //
-    // 3D vector
-    //
+    /**
+     * @brief 3D vector
+     * @tparam T Number representation to use
+    */
     template<class T> class vec3
     {
     public:
@@ -195,29 +278,21 @@ namespace linalg
             struct { T x, y, z; };
         };
         
-        vec3()
-        {
-            x = 0.0;
-            y = 0.0;
-            z = 0.0;
-        }
+        constexpr vec3() : vec3(0.0f) {}
         
-        vec3(const T &x, const T &y, const T &z)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-        }
+        constexpr vec3(const T& value) : vec3(value, value, value) {}
+
+        constexpr vec3(const T &x, const T &y, const T &z) : x(x), y(y), z(z) {}
         
         vec4<T> xyz0() const;
         
         vec4<T> xyz1() const;
         
-        void set(const T &x, const T &y, const T &z)
+        void set(const T &new_x, const T &new_y, const T &new_z)
         {
-            this->x = x;
-            this->y = y;
-            this->z = z;
+            this->x = new_x;
+            this->y = new_y;
+            this->z = new_z;
         }
         
         T dot(const vec3<T> &u) const
@@ -228,12 +303,12 @@ namespace linalg
         //
         // vector length (2-norm): |u| = sqrt(u.u)
         //
-        T norm2() const
+        constexpr T length() const
         {
             return sqrt(x*x + y*y + z*z);
         }
         
-        T norm2squared() const
+        constexpr T length_squared() const
         {
             return x*x + y*y + z*z;
         }
@@ -372,9 +447,10 @@ namespace linalg
         return out << "(" << v.x << ", " << v.y << ", " << v.z << ")";
     }
     
-    //
-    // 4D vector
-    //
+    /**
+     * @brief 4D vector
+     * @tparam T Number representation to use
+    */
     template<class T> class vec4
     {
     public:
@@ -384,28 +460,16 @@ namespace linalg
             struct { T x, y, z, w; };
         };
         
-        vec4()
-        {
-            x = y = z = w = 0;
-        }
+        constexpr vec4() : vec4(0.0f) {}
         
-        vec4(const T &x, const T &y, const T &z, const T &w)
-        {
-            this->x = x;
-            this->y = y;
-            this->z = z;
-            this->w = w;
-        }
+        constexpr vec4(const T& value) : vec4(value, value, value, value) {}
+
+        constexpr vec4(const T &x, const T &y, const T &z, const T &w) : x(x), y(y), z(z), w(w) {}
         
-        vec4(const vec3<T> &v, const T &w)
-        {
-            this->x = v.x;
-            this->y = v.y;
-            this->z = v.z;
-            this->w = w;
-        }
+        constexpr vec4(const vec3<T>& v, const T& w) : vec4(v.x, v.y, v.z, w) {}
         
-        void set(const T &x, const T &y, const T &z, const T &w){
+        void set(const T &x, const T &y, const T &z, const T &w)
+        {
             this->x = x;
             this->y = y;
             this->z = z;
@@ -471,23 +535,23 @@ namespace linalg
     template<class T>
     inline vec3<T> normalize(const vec3<T>& u)
     {
-        T norm2 = u.x*u.x + u.y*u.y + u.z*u.z;
+        T length = u.length_squared();
         
-        if( norm2 < 1.0e-8 )
+        if( length < 1.0e-8 )
             return vec3<T>(0.0, 0.0, 0.0);
         else
-            return u * (T)(1.0/sqrt(norm2));
+            return u * (T)(1.0/sqrt(length));
     }
     
     template<class T>
     inline vec4<T> normalize(const vec4<T>& u)
     {
-        T norm2 = u.x*u.x + u.y*u.y + u.z*u.z + u.w*u.w;
+        T length = u.x*u.x + u.y*u.y + u.z*u.z + u.w*u.w;
         
-        if( norm2 < 1.0e-8 )
+        if( length < 1.0e-8 )
             return vec4<T>(0.0, 0.0, 0.0, 0.0);
         else
-            return u * (1.0/sqrt(norm2));
+            return u * (1.0/sqrt(length));
     }
     
     template<class T>
@@ -527,9 +591,9 @@ namespace linalg
     //
     // compile-time instances
     //
-    const vec2f vec2f_zero = vec2f(0, 0);
-    const vec3f vec3f_zero = vec3f(0, 0, 0);
-    const vec4f vec4f_zero = vec4f(0, 0, 0, 0);
+    const vec2f vec2f_zero = vec2f(0, 0); //!< Compile-time zero initialized vec2f
+    const vec3f vec3f_zero = vec3f(0, 0, 0); //!< Compile-time zero initialized vec3f
+    const vec4f vec4f_zero = vec4f(0, 0, 0, 0); //!< Compile-time zero initialized vec4f
 }
 
 #endif /* VEC_H */

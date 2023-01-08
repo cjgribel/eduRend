@@ -11,8 +11,7 @@ Window* Window::s_instance = nullptr;
 
 bool Window::Update() noexcept
 {
-	m_sizeChanged = false;
-	//m_PreviousMousePos = m_mousePos;
+	m_size_changed = false;
 	MSG msg = { 0 };
 	while (WM_QUIT != msg.message)
 	{
@@ -31,7 +30,7 @@ bool Window::Update() noexcept
 
 HWND Window::GetHandle() noexcept
 {
-	return m_windowHandle;
+	return m_window_handle;
 }
 
 linalg::vec2i Window::GetSize() const noexcept
@@ -42,7 +41,7 @@ linalg::vec2i Window::GetSize() const noexcept
 Rect Window::GetBounds() const noexcept
 {
 	RECT rect;
-	if (GetWindowRect(m_windowHandle, &rect))
+	if (GetWindowRect(m_window_handle, &rect))
 	{
 		return { static_cast<int>(rect.left),static_cast<int>(rect.top), static_cast<int>(rect.right), static_cast<int>(rect.bottom) };
 	}
@@ -51,50 +50,32 @@ Rect Window::GetBounds() const noexcept
 
 bool Window::SizeChanged() const noexcept
 {
-	return m_sizeChanged;
+	return m_size_changed;
 }
 
-//bool Window::KeyDown(Keys key) const noexcept
-//{
-//	return m_keys[static_cast<int>(key)];
-//}
-//
-//bool Window::KeyUp(Keys key) const noexcept
-//{
-//	return !m_keys[static_cast<int>(key)];
-//}
-
-Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_windowHandle(nullptr), m_width(width), m_height(height), m_sizeChanged(false)
+bool Window::Init(uint16_t width, uint16_t height) noexcept
 {
-	// Static instance to handle window callbacks
-	if (s_instance)
-	{
-		throw std::exception("Window already created");
-	}
+	m_width = width;
+	m_height = height;
 	// Register class
-	WNDCLASSEX wcex;
+	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc = CallbackWrapper;
-	wcex.cbClsExtra = 0;
-	wcex.cbWndExtra = 0;
-	wcex.hInstance = instance;
-	wcex.hIcon = 0;
+	wcex.hInstance = GetModuleHandle(0);
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = nullptr;
 	wcex.lpszClassName = L"DA307A_eduRend";
-	wcex.hIconSm = 0;
 	if (!RegisterClassEx(&wcex))
 	{
-		throw std::exception("Class creation failed");
+		OutputDebugString(L"Window class creation failed");
+		return false;
 	}
 
 	// Adjust and create window
 	RECT rc = { 0, 0, (LONG)m_width, (LONG)m_height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-
-	if (!(m_windowHandle = CreateWindow(
+	m_window_handle = CreateWindow(
 		L"DA307A_eduRend",
 		L"DA307A - eduRend",
 		WS_OVERLAPPEDWINDOW,
@@ -104,22 +85,26 @@ Window::Window(HINSTANCE instance, int nCmdShow, int width, int height) : m_wind
 		rc.bottom - rc.top,
 		nullptr,
 		nullptr,
-		instance,
-		nullptr)))
+		wcex.hInstance,
+		nullptr);
+	if (!m_window_handle)
 	{
-		throw std::exception("Window creation failed");
+		OutputDebugString(L"Window creation failed");
+		return false;
 	}
-
-	m_keys.reset();
 	s_instance = this;
 
-	ShowWindow(m_windowHandle, nCmdShow);
+	ShowWindow(m_window_handle, SW_SHOW);
+	return true;
 }
 
-Window::~Window() noexcept
+void Window::Shutdown() noexcept
 {
-	ReleaseCapture();
 	s_instance = nullptr;
+
+	DestroyWindow(m_window_handle);
+
+	ReleaseCapture();
 }
 
 LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -130,17 +115,10 @@ LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lP
 		PostQuitMessage(0);
 		break;
 
-	case WM_KEYDOWN:
-		m_keys.set(wParam);
-		break;
-	case WM_KEYUP:
-		m_keys.reset(wParam);
-		break;
-
 	case WM_SIZE:
-		m_width = static_cast<size_t>(LOWORD(lParam));
-		m_height = static_cast<size_t>(HIWORD(lParam));
-		m_sizeChanged = true;
+		m_width = static_cast<uint16_t>(LOWORD(lParam));
+		m_height = static_cast<uint16_t>(HIWORD(lParam));
+		m_size_changed = true;
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
