@@ -14,8 +14,10 @@ Clone this repository to start working with the course assignments. Cloning can 
 - Major cleanup (@xzereha, @FilipTrip)
 
 ## Main changes: 2022 version
-- Scene class hierarchy
-- [stb_image](https://github.com/nothings/stb) for texture loading
+- Scene class hierarchy (@carlitzer)
+- [stb_image](https://github.com/nothings/stb) for texture loading (@carlitzer)
 - Shader hot-reloading (@xzereha)
 - Better DirectX debugging (@xzereha)
 - Window class (@xzereha)
+
+Base version (2016-2021) by CJ Gribel (@carlitzer).
