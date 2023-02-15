@@ -120,12 +120,12 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 
 			if(FAILED(create_shader(device, "shaders/vertex_shader.hlsl", "VS_main", SHADER_VERTEX, &inputDesc[0], 5, &vertexShader)))
 			{
-				// Can't continue the program if the shader failes to load.
+				// Can't continue the program if the shader fails to load.
 				return -1;
 			}
 			if(FAILED(create_shader(device, "shaders/pixel_shader.hlsl", "PS_main", SHADER_PIXEL, nullptr, 0, &pixelShader)))
 			{
-				// Can't continue the program if the shader failes to load.
+				// Can't continue the program if the shader fails to load.
 				return -1;
 			}
 
