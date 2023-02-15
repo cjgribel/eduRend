@@ -89,7 +89,10 @@ static ID3DBlob* compile_shader(SHADER_TYPE type, const char* pCode, uint32_t co
 	);
 	if (error)
 	{
-		printf((char*)error->lpVtbl->GetBufferPointer(error));
+		const char* shaderType = type == SHADER_VERTEX ? "ERROR! Vertex shader." : "ERROR! Pixel shader";
+		const char* errorMessage = error->lpVtbl->GetBufferPointer(error);
+		printf(errorMessage);
+		MessageBoxA(NULL, errorMessage, shaderType, 0);
 		error->lpVtbl->Release(error);
 		return NULL;
 	}
