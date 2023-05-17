@@ -69,6 +69,12 @@ void OurTestScene::Update(
 		m_camera->Move({ m_camera_velocity * dt, 0.0f, 0.0f });
 	if (input_handler.IsKeyPressed(Keys::Left) || input_handler.IsKeyPressed(Keys::A))
 		m_camera->Move({ -m_camera_velocity * dt, 0.0f, 0.0f });
+	if(input_handler.IsKeyPressed(Keys::Space))
+		m_camera->Move({ 0.0f, m_camera_velocity * dt, 0.0f });
+	if(input_handler.IsKeyPressed(Keys::LCtrl))
+		m_camera->Move({ 0.0f, -m_camera_velocity * dt, 0.0f });
+	if(input_handler.IsKeyPressed(Keys::Esc))
+		PostQuitMessage(0);
 
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
@@ -84,7 +90,7 @@ void OurTestScene::Update(
 	// Sponza model-to-world transformation
 	m_sponza_transform = mat4f::translation(0, -5, 0) *		 // Move down 5 units
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
-		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
+		mat4f::scaling(1.0f);
 
 	// Increment the rotation angle.
 	m_angle += m_angular_velocity * dt;
