@@ -73,6 +73,8 @@ void OurTestScene::Update(
 		m_camera->Move({ 0.0f, m_camera_velocity * dt, 0.0f });
 	if(input_handler.IsKeyPressed(Keys::LCtrl))
 		m_camera->Move({ 0.0f, -m_camera_velocity * dt, 0.0f });
+	if(input_handler.IsKeyPressed(Keys::Esc))
+		PostQuitMessage(0);
 
 	// Now set/update object transformations
 	// This can be done using any sequence of transformation matrices,
