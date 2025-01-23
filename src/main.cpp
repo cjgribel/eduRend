@@ -441,7 +441,7 @@ HRESULT Render(float deltaTime)
 	return swapChain->Present(1, 0);
 #else
 	// Swapping not synchronized with monitor
-	return g_SwapChain->Present(0, 0);
+	return swapChain->Present(0, 0);
 #endif
 }
 
