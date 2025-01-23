@@ -23,6 +23,9 @@
 #include "Camera.h"
 #include "Model.h"
 #include "Scene.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -49,6 +52,8 @@ static InputHandler				inputHandler;
 static Window					window;
 static std::unique_ptr<Scene>	scene;
 
+static bool						showImgui			= true; // Disable to hide metrics
+
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -62,6 +67,7 @@ void				SetViewport(int width, int height);
 //void				InitShaderBuffers();
 void				Release();
 void				WinResize();
+void				ShowMetrics(bool* p_open);
 
 //--------------------------------------------------------------------------------------
 // Entry point to the program. Initializes everything and goes into a message processing 
@@ -87,6 +93,13 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 	window.Init(initialWinWidth, initialWinHeight);
 
 	inputHandler.Initialize(instance, window.GetHandle(), initialWinWidth, initialWinHeight);
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void) io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 #ifdef USECONSOLE
 	printf("Win32-window created...\n");
@@ -158,7 +171,9 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPWSTR, _I
 	int64_t prevTimeStamp = 0;
 	QueryPerformanceCounter((LARGE_INTEGER*)&prevTimeStamp);
 
-	
+	// after successful setup, initialize imgui
+	ImGui_ImplWin32_Init(window.GetHandle());
+	ImGui_ImplDX11_Init(device, deviceContext);
 
 	printf("Entering main loop...\n");
 	
@@ -383,6 +398,14 @@ HRESULT Update(float deltaTime)
 
 HRESULT Render(float deltaTime)
 {
+	// Start the Dear ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ShowMetrics(&showImgui);
+	ImGui::Render();
+
 	// Get rid of unreferenced warning
 	deltaTime = deltaTime;
 
@@ -410,6 +433,8 @@ HRESULT Render(float deltaTime)
 	// Time for the current scene to render
 	scene->Render();
 
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
 	// Swap front and back buffer
 #ifdef VSYNC
 	// Swapping synchronized with monitor
@@ -420,8 +445,57 @@ HRESULT Render(float deltaTime)
 #endif
 }
 
+// This is to setup the metrics you see in the top left corner
+// Check imgui_demo.cpp for more functionality that can be added
+// Use D3D11_QUERY_DATA_PIPELINE_STATISTICS to show primitves drawn etc..
+void ShowMetrics(bool* p_open) {
+	static int location = 0;
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	if (location >= 0) {
+		const float PAD = 10.0f;
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+		ImVec2 work_size = viewport->WorkSize;
+		ImVec2 window_pos, window_pos_pivot;
+		window_pos.x = (location & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+		window_pos.y = (location & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+		window_pos_pivot.x = (location & 1) ? 1.0f : 0.0f;
+		window_pos_pivot.y = (location & 2) ? 1.0f : 0.0f;
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+		window_flags |= ImGuiWindowFlags_NoMove;
+	}
+	ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+	if (ImGui::Begin("Simple Metrics", p_open, window_flags)) {
+		ImGui::Text("Simple Metrics\n" "(right-click to change position)");
+		ImGui::Separator();
+		if (ImGui::BeginPopupContextWindow()) {
+			if (ImGui::MenuItem("Custom", NULL, location == -1)) location = -1;
+			if (ImGui::MenuItem("Center", NULL, location == -2)) location = -2;
+			if (ImGui::MenuItem("Top-left", NULL, location == 0)) location = 0;
+			if (ImGui::MenuItem("Top-right", NULL, location == 1)) location = 1;
+			if (ImGui::MenuItem("Bottom-left", NULL, location == 2)) location = 2;
+			if (ImGui::MenuItem("Bottom-right", NULL, location == 3)) location = 3;
+			if (p_open && ImGui::MenuItem("Close")) *p_open = false;
+			ImGui::EndPopup();
+		}
+
+		// show frametime
+		float frametime = 1000.0f / ImGui::GetIO().Framerate;
+		ImGui::Text("Frametime: %.2f ms", frametime);
+
+		// show fps
+		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+	}
+	ImGui::End();
+}
+
 void Release()
 {
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	SAFE_RELEASE(scene);
 
 	delete_shader(vertexShader);

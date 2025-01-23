@@ -6,6 +6,7 @@
 
 #include "Window.h"
 #include <windowsx.h>
+#include <imgui.h>
 
 Window* Window::s_instance = nullptr;
 
@@ -107,8 +108,13 @@ void Window::Shutdown() noexcept
 	ReleaseCapture();
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 LRESULT Window::WindowCallback(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+		return true;
+
 	switch (message)
 	{
 	case WM_DESTROY:
