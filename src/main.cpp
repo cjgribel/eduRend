@@ -15,14 +15,18 @@
 
 #define VSYNC
 #define USECONSOLE
+#define FORCE_DGPU_CHECK // Workaround hack for prio to dGPU on Optimus/ADSG laptops.
 
 #include "stdafx.h"
 #include "shader.h"
 #include "Window.h"
+#include "parseutil.h"
 #include "InputHandler.h"
 #include "Camera.h"
 #include "Model.h"
 #include "Scene.h"
+
+#include <dxgi.h>
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -59,7 +63,6 @@ void				InitRasterizerState();
 HRESULT				CreateRenderTargetView();
 HRESULT				CreateDepthStencilView(int width, int height);
 void				SetViewport(int width, int height);
-//void				InitShaderBuffers();
 void				Release();
 void				WinResize();
 
@@ -241,11 +244,11 @@ void WinResize()
 //--------------------------------------------------------------------------------------
 HRESULT InitDirect3DAndSwapChain(int width, int height)
 {
-	D3D_DRIVER_TYPE driverTypes[] = 
-	{ 
-		D3D_DRIVER_TYPE_HARDWARE, 
-		D3D_DRIVER_TYPE_WARP, 
-		D3D_DRIVER_TYPE_REFERENCE 
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE
 	};
 
 	DXGI_SWAP_CHAIN_DESC sd{};
@@ -267,14 +270,70 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 #ifdef _DEBUG
 	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-	HRESULT hr = E_FAIL;
-	for (UINT driverTypeIndex = 0; 
-		driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); 
-		driverTypeIndex++)
+
+	
+	// Checking present graphic adapters
+#ifdef FORCE_DGPU_CHECK
+	IDXGIFactory* factory;
+	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory));
+	if (FAILED(hr))
+	{
+		std::cerr << "Failed to create DXGIFactory.\n";
+		return hr;
+	}
+	std::vector<DXGI_ADAPTER_DESC> adapterDescs;
+	IDXGIAdapter* adapter = nullptr;
+	std::cout << "Listing available adapters:\n";
+	for (UINT i = 0; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	{
+		DXGI_ADAPTER_DESC desc;
+		adapter->GetDesc(&desc);
+		std::wcout << L"\t" << i << L": " << desc.Description << L"\n";
+		adapterDescs.push_back(desc);
+		adapter->Release();
+	}
+
+	size_t choice = 0;
+	if (adapterDescs.size() > 2) // counting 'Microsoft Basic Renderer'
+	{
+		if (containsSubstr_w(adapterDescs[0].Description, "uhd"))
+		{
+			// if Intel iGPU found, just go through all other adapters
+			// to see if there are any dGPUs before settling.
+			for (size_t i = 1; i < adapterDescs.size(); ++i)
+			{
+				if (containsSubstr_w(adapterDescs[i].Description, "nvidia") ||
+					containsSubstr_w(adapterDescs[i].Description, "radeon"))
+				{
+					factory->EnumAdapters(i, &adapter);
+					choice = i;
+					break;
+				}
+			}
+		} else
+			factory->EnumAdapters(1, &adapter);
+
+		std::wcout << "\n" << L"Picking Adapter " << choice << L": "
+			<< adapterDescs[choice].Description << L"\n\n";
+	}
+	factory->Release();
+
+#else
+	HRESULT hr;
+	IDXGIAdapter* adapter = nullptr;
+#endif
+
+	if (!adapter)
+		std::cout << "\nDefaulting to primary adapter.\n\n";
+
+	hr = E_FAIL;
+	for (UINT driverTypeIndex = 0;
+		 driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr);
+		 driverTypeIndex++)
 	{
 		hr = D3D11CreateDeviceAndSwapChain(
-			nullptr,
-			driverTypes[driverTypeIndex],
+			adapter, 
+			adapter == nullptr ? driverTypes[driverTypeIndex] : D3D_DRIVER_TYPE_UNKNOWN,
 			nullptr,
 			flags,
 			featureLevelsToTry,
@@ -287,11 +346,13 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 			&deviceContext);
 	}
 #ifdef _DEBUG
-	device->QueryInterface(&debugController);
-	//g_DebugController->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	SETNAME(swapChain, "Swapchain");
-	SETNAME(device, "Device");
-	SETNAME(deviceContext, "Context");
+	if (hr == S_OK)
+	{
+		device->QueryInterface(&debugController);
+		SETNAME(swapChain, "Swapchain");
+		SETNAME(device, "Device");
+		SETNAME(deviceContext, "Context");
+	}
 #endif // _DEBUG
 	return hr;
 }

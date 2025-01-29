@@ -104,3 +104,37 @@ static bool find_filename_from_suffixes(const std::string& str, const std::vecto
 }
 
 #endif /* parseutil_h */
+
+/**
+ * @brief Checks if a substring is contained in a wide string (more than 8 bits per character).
+ * @brief Case insensitive.
+ * @param[in] source - The wstring to search.
+ * @param[in] substring - The substring (as regular c-string) to check for.
+ * @return True if a substring was found, False if no occurence was found.
+*/
+static bool containsSubstr_w(const std::wstring& source, const char* substring)
+{
+    wchar_t wideSubstring[128] = { 0 };
+    size_t convertedLength = 0;
+
+    auto inputLen = strlen(substring);
+
+    errno_t err = mbstowcs_s(&convertedLength, wideSubstring, 128, substring, inputLen);
+    if (err != 0)
+    {
+        // Error, check input 
+        return false;
+    }
+
+    for (size_t i = 0; i < 128; ++i)
+        wideSubstring[i] = towupper(wideSubstring[i]);
+
+    wchar_t src[128];
+    source.copy(src, source.length(), 0);
+
+    for (int i = 0; i < source.length(); i++)
+        src[i] = towupper(source[i]);
+
+    const wchar_t* result = std::wcsstr(src, wideSubstring);
+    return result != nullptr;
+}
