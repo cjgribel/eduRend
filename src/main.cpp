@@ -15,8 +15,12 @@
 
 #define VSYNC
 #define USECONSOLE
-#define FORCE_DGPU_CHECK // Workaround hack for prio to dGPU on Optimus/ADSG laptops.
+#define FORCE_DGPU // Force to use the dGPU on systems with multiple adapters
 
+
+#include <dxcore.h>
+#include <dxgi1_6.h>
+#include <array>
 #include "stdafx.h"
 #include "shader.h"
 #include "Window.h"
@@ -26,7 +30,8 @@
 #include "Model.h"
 #include "Scene.h"
 
-#include <dxgi.h>
+
+
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -48,6 +53,7 @@ static ID3D11Debug*				debugController		= nullptr;
 
 static const int				initialWinWidth		= 1024;
 static const int				initialWinHeight	= 576;
+static const size_t				DescStringSize		= 128;
 
 static InputHandler				inputHandler;
 static Window					window;
@@ -272,52 +278,117 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 #endif
 
 	
-	// Checking present graphic adapters
-#ifdef FORCE_DGPU_CHECK
-	IDXGIFactory* factory;
-	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory));
-	if (FAILED(hr))
-	{
-		std::cerr << "Failed to create DXGIFactory.\n";
-		return hr;
-	}
-	std::vector<DXGI_ADAPTER_DESC> adapterDescs;
-	IDXGIAdapter* adapter = nullptr;
+	
+#ifdef FORCE_DGPU
+	
+	// Checking present graphic adapters.
+	// adapter will fallback to staying as nullptr on error
 	std::cout << "Listing available adapters:\n";
-	for (UINT i = 0; factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
-	{
-		DXGI_ADAPTER_DESC desc;
-		adapter->GetDesc(&desc);
-		std::wcout << L"\t" << i << L": " << desc.Description << L"\n";
-		adapterDescs.push_back(desc);
-		adapter->Release();
-	}
+	size_t adapterCount = 0;
+	std::vector<bool> isHardwareList;
+	std::vector<bool> isIntegratedList;
+	std::vector<std::array<char, DescStringSize>> drvDescList;
+	std::vector<IDXCoreAdapter*> adapterList;
+	IDXCoreAdapterFactory* adapterFactory = nullptr;
+	IDXGIAdapter* adapter = nullptr;
+	IDXCoreAdapterList* D3D11Adapters = nullptr;
+	GUID attributes[]{ DXCORE_ADAPTER_ATTRIBUTE_D3D11_GRAPHICS };
 
-	size_t choice = 0;
-	if (adapterDescs.size() > 2) // counting 'Microsoft Basic Renderer'
+	HRESULT hr = DXCoreCreateAdapterFactory(&adapterFactory);
+	if (FAILED(hr)) {
+		std::cerr << "Failed to create DXCoreAdapterFactory.\n";
+		goto checkFailed; }
+	
+	hr = adapterFactory->CreateAdapterList(_countof(attributes),
+										  attributes,
+										   &D3D11Adapters);
+	if (FAILED(hr)) {
+		std::cerr << "Failed to create Adapter list.\n";
+		goto checkFailed; }
+	adapterCount = D3D11Adapters->GetAdapterCount();
+
+
+	// query adapters and store info about them
+	for (uint32_t i = 0; i < adapterCount; ++i)
 	{
-		if (containsSubstr_w(adapterDescs[0].Description, "uhd"))
+		IDXCoreAdapter* candidate = nullptr;
+		hr = D3D11Adapters->GetAdapter(i, &candidate);
+		if (FAILED(hr))
 		{
-			// if Intel iGPU found, just go through all other adapters
-			// to see if there are any dGPUs before settling.
-			for (size_t i = 1; i < adapterDescs.size(); ++i)
-			{
-				if (containsSubstr_w(adapterDescs[i].Description, "nvidia") ||
-					containsSubstr_w(adapterDescs[i].Description, "radeon"))
-				{
-					factory->EnumAdapters(i, &adapter);
-					choice = i;
-					break;
-				}
-			}
+			std::cerr << "Failed to get Adapter, index " << i << ".\n";
+			isHardwareList.push_back(false);
+			isIntegratedList.push_back(false);
+			adapterList.push_back(nullptr);
+			drvDescList.push_back({});
+			continue;
+		}
+
+		std::array<char, DescStringSize> drvDesc;
+		size_t descStringBufferSize = sizeof(drvDesc);
+
+		if (candidate->IsPropertySupported(DXCoreAdapterProperty::IsHardware) &&
+			candidate->IsPropertySupported(DXCoreAdapterProperty::IsIntegrated) &&
+			candidate->IsPropertySupported(DXCoreAdapterProperty::DriverDescription))
+		{
+			candidate->GetProperty(DXCoreAdapterProperty::DriverDescription, descStringBufferSize, &drvDesc);
+			drvDescList.push_back(drvDesc);
+			bool isHw = false;
+			candidate->GetProperty( DXCoreAdapterProperty::IsHardware, &isHw);
+			bool isIntegrated = false;;
+			candidate->GetProperty(DXCoreAdapterProperty::IsIntegrated, &isIntegrated);
+			isHardwareList.push_back(isHw);
+			isIntegratedList.push_back(isIntegrated);
+			adapterList.push_back(candidate);
+
+			std::cout << "\t" << i << ": " << drvDesc.data() << "\n";
 		} else
-			factory->EnumAdapters(1, &adapter);
-
-		std::wcout << "\n" << L"Picking Adapter " << choice << L": "
-			<< adapterDescs[choice].Description << L"\n\n";
+		{
+			isHardwareList.push_back(false);
+			isIntegratedList.push_back(false);
+			adapterList.push_back(nullptr);
+			drvDescList.push_back(drvDesc);
+			std::cout << "\t" << i << ": Invalid Device\n";
+		}	
 	}
-	factory->Release();
+	
+	// find the first non iGPU hardware adapter
+	for (size_t i = 0; i < adapterCount; ++i) {
+		if (isHardwareList[i] && !isIntegratedList[i]) {
 
+			LUID adapterLuid;
+			size_t luidSize = sizeof(adapterLuid);
+			hr = adapterList[i]->GetProperty(DXCoreAdapterProperty::InstanceLuid, luidSize, &adapterLuid);
+			if (FAILED(hr)) {
+				std::cerr << "Failed to create Adapter list.\n"; break; }
+
+			// Setup older DXGI factory and get the DXGIAdapter by LUID
+			IDXGIFactory6* oldFactory = nullptr;
+			hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&oldFactory));
+			if (FAILED(hr)) {
+				std::cerr << "Failed to create DXGIFactory.\n"; break; }
+
+			hr = oldFactory->EnumAdapterByLuid(adapterLuid, IID_PPV_ARGS(&adapter));
+			if (FAILED(hr)) {
+				std::cerr << "Failed to aquire DXGIAdapter from LUID.\n";
+				adapter = nullptr;
+			}
+			if (oldFactory)
+				oldFactory->Release();
+
+			if (adapter)
+				std::cout << "\nPicking Adapter " << i << ": " << drvDescList[i].data() << "\n\n";
+
+			break;
+		}
+	}
+checkFailed:
+	if (D3D11Adapters) D3D11Adapters->Release();
+	if (adapterFactory) adapterFactory->Release();
+	for (size_t i = 0; i < adapterCount; ++i)
+	{
+		if (adapterList[i])
+			adapterList[i]->Release();
+	}
 #else
 	HRESULT hr;
 	IDXGIAdapter* adapter = nullptr;
