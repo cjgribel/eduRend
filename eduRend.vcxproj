@@ -163,6 +163,7 @@
   <ItemGroup>
     <ClInclude Include="lib\stb_image.h" />
     <ClInclude Include="src\buffers.h" />
+    <ClInclude Include="src\dgpuforcer.h" />
     <ClInclude Include="src\objmodel.h" />
     <ClInclude Include="src\quadmodel.h" />
     <ClInclude Include="src\camera.h" />

@@ -76,6 +76,9 @@
     <ClInclude Include="lib\stb_image.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="src\dgpuforcer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\inputhandler.cpp">
