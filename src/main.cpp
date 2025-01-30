@@ -15,7 +15,7 @@
 
 #define VSYNC
 #define USECONSOLE
-#define FORCE_DGPU // Force to use the dGPU on systems with multiple adapters
+//#define FORCE_DGPU // Force to use the dGPU on systems with multiple adapters
 
 
 #include <dxcore.h>
