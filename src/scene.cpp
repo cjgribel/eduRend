@@ -90,7 +90,7 @@ void OurTestScene::Update(
 	// Sponza model-to-world transformation
 	m_sponza_transform = mat4f::translation(0, -5, 0) *		 // Move down 5 units
 		mat4f::rotation(fPI / 2, 0.0f, 1.0f, 0.0f) * // Rotate pi/2 radians (90 degrees) around y
-		mat4f::scaling(1.0f);
+		mat4f::scaling(0.05f);						 // The scene is quite large so scale it down to 5%
 
 	// Increment the rotation angle.
 	m_angle += m_angular_velocity * dt;
