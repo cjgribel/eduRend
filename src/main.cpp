@@ -403,7 +403,9 @@ HRESULT Render(float deltaTime)
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
-	ShowMetrics(&showImgui);
+	if (showImgui)
+		ShowMetrics(&showImgui);
+	
 	ImGui::Render();
 
 	// Get rid of unreferenced warning
@@ -465,13 +467,16 @@ void ShowMetrics(bool* p_open) {
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 		window_flags |= ImGuiWindowFlags_NoMove;
 	}
+
 	ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-	if (ImGui::Begin("Simple Metrics", p_open, window_flags)) {
+	if (!ImGui::Begin("Simple Metrics", p_open, window_flags)) {
+		ImGui::End();
+	}
+	else {
 		ImGui::Text("Simple Metrics\n" "(right-click to change position)");
 		ImGui::Separator();
 		if (ImGui::BeginPopupContextWindow()) {
 			if (ImGui::MenuItem("Custom", NULL, location == -1)) location = -1;
-			if (ImGui::MenuItem("Center", NULL, location == -2)) location = -2;
 			if (ImGui::MenuItem("Top-left", NULL, location == 0)) location = 0;
 			if (ImGui::MenuItem("Top-right", NULL, location == 1)) location = 1;
 			if (ImGui::MenuItem("Bottom-left", NULL, location == 2)) location = 2;
@@ -486,8 +491,9 @@ void ShowMetrics(bool* p_open) {
 
 		// show fps
 		ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+		
+		ImGui::End();
 	}
-	ImGui::End();
 }
 
 void Release()
