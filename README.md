@@ -14,6 +14,7 @@ Clone this repository to start working with the course assignments. Cloning can 
 ## Main changes: 2025 version
 - Misc. QOL (@xzereha)
 - ImGui (@Selfsson-Dev)
+- [Optional FORCE_DGPU](https://github.com/cjgribel/eduRend/pull/10) (@Oxenryd)
 
 ## Main changes: 2023 version
 - Major cleanup (@xzereha, @FilipTrip)
