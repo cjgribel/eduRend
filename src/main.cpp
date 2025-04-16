@@ -15,10 +15,12 @@
 
 #define VSYNC
 #define USECONSOLE
+//#define FORCE_DGPU // Force to use the dGPU on systems with multiple adapters
 
 #include "stdafx.h"
 #include "shader.h"
 #include "Window.h"
+#include "parseutil.h"
 #include "InputHandler.h"
 #include "Camera.h"
 #include "Model.h"
@@ -26,6 +28,11 @@
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
+
+#ifdef FORCE_DGPU
+#include "dgpuforcer.h"
+#endif
+
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -64,7 +71,6 @@ void				InitRasterizerState();
 HRESULT				CreateRenderTargetView();
 HRESULT				CreateDepthStencilView(int width, int height);
 void				SetViewport(int width, int height);
-//void				InitShaderBuffers();
 void				Release();
 void				WinResize();
 void				ShowMetrics(bool* p_open);
@@ -256,11 +262,11 @@ void WinResize()
 //--------------------------------------------------------------------------------------
 HRESULT InitDirect3DAndSwapChain(int width, int height)
 {
-	D3D_DRIVER_TYPE driverTypes[] = 
-	{ 
-		D3D_DRIVER_TYPE_HARDWARE, 
-		D3D_DRIVER_TYPE_WARP, 
-		D3D_DRIVER_TYPE_REFERENCE 
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE
 	};
 
 	DXGI_SWAP_CHAIN_DESC sd{};
@@ -282,14 +288,30 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 #ifdef _DEBUG
 	flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-	HRESULT hr = E_FAIL;
-	for (UINT driverTypeIndex = 0; 
-		driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr); 
-		driverTypeIndex++)
+
+	
+#ifdef FORCE_DGPU
+	// Trying to force a dedicated Gpu on systems
+	// with multiple graphics devices.
+	auto result = DGpuForcer::GetAdapterPtr();
+	HRESULT hr = result.first;
+	IDXGIAdapter* adapter = result.second;
+#else
+	HRESULT hr;
+	IDXGIAdapter* adapter = nullptr;
+#endif
+
+	if (!adapter)
+		std::cout << "\nDefaulting to primary adapter.\n\n";
+
+	hr = E_FAIL;
+	for (UINT driverTypeIndex = 0;
+		 driverTypeIndex < ARRAYSIZE(driverTypes) && FAILED(hr);
+		 driverTypeIndex++)
 	{
 		hr = D3D11CreateDeviceAndSwapChain(
-			nullptr,
-			driverTypes[driverTypeIndex],
+			adapter, 
+			adapter == nullptr ? driverTypes[driverTypeIndex] : D3D_DRIVER_TYPE_UNKNOWN,
 			nullptr,
 			flags,
 			featureLevelsToTry,
@@ -302,11 +324,13 @@ HRESULT InitDirect3DAndSwapChain(int width, int height)
 			&deviceContext);
 	}
 #ifdef _DEBUG
-	device->QueryInterface(&debugController);
-	//g_DebugController->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-	SETNAME(swapChain, "Swapchain");
-	SETNAME(device, "Device");
-	SETNAME(deviceContext, "Context");
+	if (hr == S_OK)
+	{
+		device->QueryInterface(&debugController);
+		SETNAME(swapChain, "Swapchain");
+		SETNAME(device, "Device");
+		SETNAME(deviceContext, "Context");
+	}
 #endif // _DEBUG
 	return hr;
 }
