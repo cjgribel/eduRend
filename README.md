@@ -1,7 +1,8 @@
 # eduRend
 ![eduRend](EDU_2d_s.png)
 
-Main framework for graphics assignments in DA307A Computer Graphics and Modelling, Malmö University.
+Main framework for graphics assignments in DA307A Computer Graphics and Modelling, Malmö University.  
+Assets are required to run the code. These can be downloaded from the course page.
 
 Clone this repository to start working with the course assignments. Cloning can be done here on this page, or using e.g. [GitHub Desktop Client](https://desktop.github.com/).
 
@@ -9,6 +10,10 @@ Clone this repository to start working with the course assignments. Cloning can 
 - Windows 10 or 11.
 - Visual Studio 2019 (C++14) or newer
 - A GPU that supports DirectX 11.
+
+## Main changes: 2025 version
+- Misc. QOL (@xzereha)
+- ImGui (@Selfsson-Dev)
 
 ## Main changes: 2023 version
 - Major cleanup (@xzereha, @FilipTrip)
@@ -20,4 +25,4 @@ Clone this repository to start working with the course assignments. Cloning can 
 - Better DirectX debugging (@xzereha)
 - Window class (@xzereha)
 
-Base version (2016-2021) by CJ Gribel (@cjgribel).
+Base version by CJ Gribel (@cjgribel).

@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <D3D11.h>
 #include <d3dCompiler.h>
+
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
 #include <string>

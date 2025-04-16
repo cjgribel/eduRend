@@ -43,6 +43,7 @@ struct Material
 
 	// File paths to textures
 	std::string DiffuseTextureFilename; //!< Diffuse texture path
+	std::string SpecularTextureFilename; //!< Specular texture path
 	std::string NormalTextureFilename; //!< Normal texture path
 
 	// + more texture types (extend OBJLoader::LoadMaterials if needed)
