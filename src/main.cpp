@@ -11,6 +11,8 @@
 //	Alexander Baldwin
 //	Oliver Öhrström
 //	Hugo Hansen
+//  Oswald Graae
+//  Pierre Oxenryd
 //
 
 #define VSYNC
